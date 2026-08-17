@@ -203,6 +203,20 @@ class ValidatorEngine:
             "/validateResource", params=params, content=content, headers=headers
         )
 
+    async def convert_resource(
+        self,
+        content: bytes,
+        content_type: str,
+        accept: str,
+    ) -> httpx.Response:
+        """Proxy to the engine's `POST /convert` (JSON<->XML format
+        conversion). Note the engine itself defaults to JSON output when
+        `Accept` is omitted -- it does *not* infer "the other format" from
+        `content_type` -- so callers wanting a JSON<->XML flip must always
+        pass an explicit `accept`."""
+        headers = {"Content-Type": content_type, "Accept": accept}
+        return await self._client.post("/convert", content=content, headers=headers)
+
     async def health(self) -> dict[str, Any]:
         return {
             "running": self.is_running,

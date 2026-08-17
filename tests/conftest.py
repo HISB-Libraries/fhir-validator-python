@@ -27,6 +27,8 @@ class FakeValidatorEngine:
     response_content_type: str = "application/fhir+json"
     last_validate_call: dict | None = None
     raise_on_validate: Exception | None = None
+    last_convert_call: dict | None = None
+    raise_on_convert: Exception | None = None
 
     async def ensure_igs_loaded(self, igs: list[str]) -> None:
         for ig in igs:
@@ -40,6 +42,20 @@ class FakeValidatorEngine:
             "content": content,
             "content_type": content_type,
             "profiles": profiles,
+            "accept": accept,
+        }
+        return httpx.Response(
+            status_code=self.response_status,
+            content=self.response_body,
+            headers={"content-type": self.response_content_type},
+        )
+
+    async def convert_resource(self, content, content_type, accept):
+        if self.raise_on_convert:
+            raise self.raise_on_convert
+        self.last_convert_call = {
+            "content": content,
+            "content_type": content_type,
             "accept": accept,
         }
         return httpx.Response(

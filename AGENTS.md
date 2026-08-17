@@ -11,6 +11,7 @@ FHIR Validator CLI (`validator_cli.jar`).
 +-------------------------------------------------------------------+
 |                        Python FastAPI App                         |
 |                     Endpoint: POST /fhir/$validate                |
+|                     Endpoint: POST /fhir/$convert                 |
 |                     Endpoint: GET  /fhir/$packages                |
 |                     Endpoint: GET  /healthz                       |
 +-------------------------------------------------------------------+
@@ -26,6 +27,7 @@ FHIR Validator CLI (`validator_cli.jar`).
 |  Proxies over HTTP to that subprocess:                            |
 |    POST /loadIG           (load new IGs into the running engine)  |
 |    POST /validateResource  (validate; returns OperationOutcome)   |
+|    POST /convert           (JSON<->XML format conversion)         |
 +-------------------------------------------------------------------+
                                   |
      Caches IGs & deps    -> $HOME/.fhir/packages
@@ -79,6 +81,27 @@ which uses `app/fhir_xml.py::operation_outcome_to_xml` for the XML case).
 Note `app/fhir_xml.py` is a narrow, `$validate`-specific XML parser/serializer
 (just `ig`/`profile`/`format`/`resource` extraction and a fixed-shape
 OperationOutcome writer) — not a general FHIR XML<->JSON converter.
+
+## `POST /fhir/$convert`
+
+Converts a FHIR resource between its JSON and XML representations. Unlike
+`$validate`, the body is the **raw resource itself** (no `Parameters`
+wrapper) -- input format is detected from `Content-Type` the same way as
+`$validate` (anything containing `xml` -> XML, else JSON).
+
+Default behavior (no `Accept` header) is to **flip** the format -- JSON in
+gives XML out and vice versa. This is a deliberate divergence from the
+underlying validator engine's own `/convert`, which defaults to JSON output
+regardless of input when `Accept` is omitted (verified against the real
+jar); `app/main.py::convert` always computes and sends an explicit `Accept`
+to the engine so the flip actually happens. An explicit `Accept:
+application/fhir+json`/`application/fhir+xml` header overrides the flip
+(e.g. to request a JSON->JSON round-trip/pretty-print), resolved the same
+way as `$validate`'s response format (`resolve_accept_format`).
+
+The upstream response (including its own conversion-error `OperationOutcome`
+on bad input, HTTP 500) is passed through as-is; we only synthesize our own
+error outcome for an empty request body or an unreachable/down engine.
 
 ## `GET /fhir/$packages`
 

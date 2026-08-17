@@ -2,6 +2,7 @@
 
 Endpoints:
   - POST /fhir/$validate  (base = hostname/fhir, per AGENTS.md)
+  - POST /fhir/$convert   (JSON<->XML resource format conversion)
   - GET  /fhir/$packages  (advertises the `PACKAGES` env var, see app/config.py)
   - GET  /healthz
 
@@ -145,6 +146,51 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             )
 
         content_type = upstream.headers.get("content-type", response_format)
+        return Response(
+            content=upstream.content,
+            status_code=upstream.status_code,
+            media_type=content_type,
+        )
+
+    @app.post("/fhir/$convert")
+    async def convert(request: Request) -> Response:
+        engine: ValidatorEngine = request.app.state.validator_engine
+
+        request_is_xml = is_xml_content_type(request.headers.get("content-type", ""))
+        input_format = "application/fhir+xml" if request_is_xml else "application/fhir+json"
+        opposite_format = "application/fhir+json" if request_is_xml else "application/fhir+xml"
+        # Unlike $validate, the underlying engine's own /convert defaults to
+        # JSON when Accept is omitted (it does not infer "the other format"
+        # from Content-Type) -- so we always resolve an explicit target here,
+        # falling back to the JSON<->XML flip rather than the engine's own
+        # default.
+        target_format = resolve_accept_format(request.headers.get("accept", ""), opposite_format)
+
+        body = await request.body()
+        if not body:
+            return _outcome_response(
+                400, "error", "invalid", "Request body must not be empty.", target_format
+            )
+
+        if not engine.is_running:
+            return _outcome_response(
+                503, "error", "transient", "Validator engine is not running.", target_format
+            )
+
+        try:
+            upstream = await engine.convert_resource(
+                content=body, content_type=input_format, accept=target_format
+            )
+        except httpx.HTTPError as exc:
+            return _outcome_response(
+                502,
+                "error",
+                "exception",
+                f"Could not reach validator engine: {exc}",
+                target_format,
+            )
+
+        content_type = upstream.headers.get("content-type", target_format)
         return Response(
             content=upstream.content,
             status_code=upstream.status_code,
