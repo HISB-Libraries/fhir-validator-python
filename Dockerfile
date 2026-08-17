@@ -19,6 +19,13 @@ ENV VALIDATOR_JAR_PATH=/opt/validator/validator_cli.jar
 WORKDIR /app
 COPY pyproject.toml ./
 COPY app ./app
+# Pre-extracted IG packages (see app/package_cache.py) -- copied into the
+# shared FHIR package cache automatically at container startup by
+# ValidatorEngine.start(), so they're already available with no network
+# fetch as soon as the container is up. Requires packages/ to exist in the
+# build context (it's checked into this repo); if you fork this without
+# that directory, remove this line.
+COPY packages ./packages
 RUN pip install --no-cache-dir .
 
 # Persistent FHIR package + terminology cache. The validator writes to

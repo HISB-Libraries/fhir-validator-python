@@ -218,10 +218,16 @@ manually: removed a real cached IG from `~/.fhir/packages`, restarted the
 engine, confirmed the folder came back byte-for-byte from `packages/`, and
 that `/loadIG` then succeeded for it.
 
-Not wired into the Dockerfile by default (a hard `COPY packages ./packages`
-would break `docker build` for any checkout without that directory present)
-— add `COPY packages ./packages` yourself before the `pip install` step if
-you want these baked into the image too.
+The Dockerfile does `COPY packages ./packages` (before `pip install`), so
+these are baked into the image and preloaded automatically the moment a
+container starts -- no network fetch needed for them even on a totally
+fresh deployment/volume. This requires `packages/` to exist in the build
+context; if you fork this repo without that directory, remove that `COPY`
+line or `docker build` will fail. Verified: a container started from a
+fresh image with no pre-existing `/root/.fhir` volume had all packages
+copied into `/root/.fhir/packages` (log line `Preloaded N package(s)...`)
+*before* the validator subprocess even launched, and `/loadIG` for one of
+them completed with `Load ... (00:00.000)` -- i.e. no fetch.
 
 ## Environment variables (`app/config.py`)
 
