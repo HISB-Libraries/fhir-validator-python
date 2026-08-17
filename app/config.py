@@ -105,4 +105,14 @@ class Settings(BaseSettings):
     # --- HTTP API ---
     default_response_format: str = "application/fhir+json"
 
+    cors_allow_origins: str = "*"
+    """Comma-separated list of allowed CORS origins (e.g.
+    "https://a.example.com,https://b.example.com"). Defaults to "*" (any
+    origin). This also makes FastAPI/Starlette respond to CORS preflight
+    `OPTIONS` requests on every route -- see `CORSMiddleware` in app/main.py."""
+
     log_level: str = "INFO"
+
+    @property
+    def cors_allow_origins_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_allow_origins.split(",") if origin.strip()]

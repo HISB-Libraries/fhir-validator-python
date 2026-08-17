@@ -329,6 +329,7 @@ forward -- don't let a test's default settings resolve to real paths.
 | `LOAD_CACHED_PACKAGES_ON_STARTUP` | `true` | load every package found in `$HOME/.fhir/packages` into the running engine at startup, see "Loading cached packages into the engine at startup" above; best-effort, set `false` for purely lazy/on-demand loading |
 | `PACKAGES` | see `app/config.py` | comma-separated `<id>#<version>` list; canonical source is `.env` (see `.env.example`), not this Python-level fallback -- returned by `GET /fhir/$packages` *and* fetched/cached/loaded into the engine at startup, see "Configuring PACKAGES and DEFAULT_IG via .env" above |
 | `DEFAULT_IG` | `` (empty) | primary `<id>#<version>` IG for this deployment; loaded (with dependencies auto-resolved) alongside `PACKAGES` at startup, see above; canonical source is also `.env` |
+| `CORS_ALLOW_ORIGINS` | `*` | comma-separated list of allowed CORS origins; also makes every route respond to CORS preflight `OPTIONS` requests via Starlette's `CORSMiddleware` (see `app/main.py`) |
 
 The public FastAPI port is set via the ASGI server invocation (`uvicorn
 app.main:app --port ...`), not an env var.

@@ -22,6 +22,7 @@ from contextlib import asynccontextmanager
 
 import httpx
 from fastapi import FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import Settings
 from app.fhir_parameters import (
@@ -78,6 +79,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(title="FHIR Validation Service", lifespan=lifespan)
     app.state.settings = settings
+
+    # Enables CORS preflight `OPTIONS` handling on every route (Starlette's
+    # CORSMiddleware intercepts `OPTIONS` requests carrying an
+    # `Access-Control-Request-Method` header before they reach any endpoint,
+    # so routes above don't need their own `OPTIONS` handlers).
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_allow_origins_list,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     @app.get("/healthz")
     async def healthz(request: Request) -> dict:
