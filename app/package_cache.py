@@ -35,6 +35,15 @@ def _looks_like_package_dir(path: Path) -> bool:
     return path.is_dir() and not path.name.startswith(".") and (path / "package").is_dir()
 
 
+def list_cached_packages(cache_dir: Path) -> list[str]:
+    """Return the `<packageId>#<version>` names of every package folder
+    already present in `cache_dir` (the shared FHIR package cache), sorted
+    for deterministic ordering. Empty list if `cache_dir` doesn't exist."""
+    if not cache_dir.is_dir():
+        return []
+    return sorted(entry.name for entry in cache_dir.iterdir() if _looks_like_package_dir(entry))
+
+
 def preload_packages(source_dir: Path, cache_dir: Path) -> list[str]:
     """Copy any package folders in `source_dir` into `cache_dir` that
     aren't already there. Returns the names actually copied. No-op

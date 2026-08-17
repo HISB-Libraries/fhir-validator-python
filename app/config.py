@@ -36,13 +36,31 @@ class Settings(BaseSettings):
     validator_extra_args: str = ""
     """Comma-separated additional raw CLI args appended verbatim to the `server` subcommand."""
     packages_dir: str = "packages"
-    """Directory of pre-extracted `<packageId>#<version>/package/...` folders (see
-    app/package_cache.py) copied into the shared FHIR package cache (`~/.fhir/packages`)
-    before the engine starts, so those IGs never need a network fetch. Relative paths are
-    resolved against the process's current working directory. A missing directory is a
-    no-op, not an error -- this is optional."""
+    """Directory of pre-extracted `<packageId>#<version>/package/...` folders for
+    "local IGs" -- packages not published on the FHIR package registry, e.g.
+    draft/ballot/ci-build versions (see app/package_cache.py) -- copied into the
+    shared FHIR package cache (`~/.fhir/packages`) before the engine starts, so
+    those IGs never need a network fetch. Relative paths are resolved against the
+    process's current working directory. A missing directory is a no-op, not an
+    error -- this is optional."""
+    load_cached_packages_on_startup: bool = True
+    """After the engine reports ready, load every package already present in the FHIR
+    package cache (not just the ones from `packages_dir`/`startup_igs`) into the running
+    engine via POST /loadIG, so anything sitting in the cache is immediately usable rather
+    than lazily loaded on first reference. Best-effort: a package that fails to load (e.g.
+    a stale/conflicting version left over from unrelated prior use of a shared cache
+    directory) is logged and skipped -- it does not abort startup or block other packages.
+    Set to False to go back to purely lazy, on-demand loading."""
 
-    # --- GET /fhir/$packages ---
+    # --- GET /fhir/$packages, and ensured present in the FHIR package cache
+    # (and loaded into the running engine) at startup -- see
+    # ValidatorEngine.load_configured_packages(). Packages also found in
+    # `packages_dir` ("local IGs" -- not published on the FHIR package
+    # registry) are copied from disk; everything else listed here is
+    # fetched from the registry over the network. Of the 7 below, only
+    # hl7.fhir.us.vdor#0.1.1-cibuild and hl7.fhir.us.mdi#3.0.0-draft are
+    # unpublished (verified against packages.fhir.org) and need to live in
+    # packages_dir; the rest are fetched. ---
     packages: str = (
         "hl7.fhir.us.vr-common-library#2.0.0,"
         "hl7.fhir.us.vdor#0.1.1-cibuild,"
@@ -52,10 +70,20 @@ class Settings(BaseSettings):
         "hl7.fhir.us.vrdr#3.0.0,"
         "hl7.fhir.us.core#5.0.1"
     )
-    """Comma-separated `<packageId>#<version>` list advertised by `GET /fhir/$packages`
-    (see `packages_list` below for the parsed form). Defaults to the IGs shipped in the
-    repo's `packages/` folder (see `packages_dir` above and app/package_cache.py) -- if
-    you add/remove a preloaded IG there, update this default too so the two stay in sync."""
+    """Comma-separated `<packageId>#<version>` list (see `packages_list` below
+    for the parsed form). This Python-level value is only a fallback -- the
+    canonical source is the `PACKAGES` line in `.env` (see `.env.example`),
+    specifically so operators can edit the list without rebuilding the
+    image: pass it via `docker run --env-file .env` (or mount `.env` into
+    the container at `/app/.env`) rather than baking it into the image."""
+    default_ig: str = ""
+    """The primary `<packageId>#<version>` IG for this deployment (see
+    `.env.example`). Loaded into the engine at startup like `packages`
+    above; the validator automatically resolves and fetches *its* declared
+    dependencies too (recursively), from the registry if not already
+    cached, per the FHIR Package Cache spec's recursive resolution rules --
+    we don't need any extra dependency-walking code of our own for this.
+    Empty (default) disables it."""
 
     @property
     def startup_igs_list(self) -> list[str]:

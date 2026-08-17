@@ -21,7 +21,11 @@ from typing import Any
 import httpx
 
 from app.config import Settings
-from app.package_cache import default_fhir_package_cache_dir, preload_packages
+from app.package_cache import (
+    default_fhir_package_cache_dir,
+    list_cached_packages,
+    preload_packages,
+)
 
 logger = logging.getLogger("fhir_validator.engine")
 
@@ -142,6 +146,11 @@ class ValidatorEngine:
         if self._settings.startup_igs_list:
             self._loaded_igs.update(self._settings.startup_igs_list)
 
+        await self.load_configured_packages()
+
+        if self._settings.load_cached_packages_on_startup:
+            await self.load_all_cached_packages()
+
     async def _pump_logs(self, ready: asyncio.Event) -> None:
         """Continuously drain the subprocess's stdout (avoids pipe deadlock),
         flip `ready` once the server announces it's listening, and keep a
@@ -189,6 +198,88 @@ class ValidatorEngine:
                         f"Failed to load IG '{ig}': {response.status_code} {response.text}"
                     )
                 self._loaded_igs.add(ig)
+
+    async def load_configured_packages(self) -> None:
+        """Ensure every package listed in `PACKAGES` (see `GET /fhir/$packages`)
+        plus `DEFAULT_IG` is loaded into the running engine.
+
+        This is the same `POST /loadIG` used everywhere else -- it resolves
+        cache-first, network-fallback, exactly like a request's `ig`
+        parameter would. The distinction between "local IGs" (present in
+        `packages_dir`, not published on the FHIR package registry) and
+        ordinary published packages isn't something we need to detect
+        ourselves: `preload_packages()` already copied the local ones onto
+        disk earlier in `start()`, so `/loadIG` finds them as instant cache
+        hits, while anything else here falls through to a real network
+        fetch from the registry -- and the registry lookup also recursively
+        resolves that package's own declared dependencies, so `DEFAULT_IG`'s
+        dependency tree is pulled in for free too.
+        """
+        targets: list[str] = []
+        for pkg in [*self._settings.packages_list, self._settings.default_ig]:
+            if pkg and pkg not in targets:
+                targets.append(pkg)
+
+        to_load = [pkg for pkg in targets if pkg not in self._loaded_igs]
+        if not to_load:
+            return
+
+        logger.info("Loading %d configured package(s) into the engine: %s", len(to_load), to_load)
+        await self._load_igs_best_effort(to_load)
+
+    async def load_all_cached_packages(self) -> None:
+        """Load every package already present in the FHIR package cache
+        (`~/.fhir/packages`) into the running engine via POST /loadIG, not
+        just the ones referenced by a request's "ig" parameter or passed via
+        STARTUP_IGS/PACKAGES/DEFAULT_IG.
+
+        Best-effort and non-fatal by design: the cache is a shared,
+        long-lived directory that can accumulate packages from unrelated
+        prior activity (different FHIR versions, multiple versions of the
+        same IG) which may legitimately fail to load together in a single
+        engine. A failure loading one package is logged and skipped -- it
+        does not raise, abort startup, or block the rest from loading.
+        """
+        cache_dir = default_fhir_package_cache_dir()
+        cached = list_cached_packages(cache_dir)
+        to_load = [pkg for pkg in cached if pkg not in self._loaded_igs]
+        if not to_load:
+            return
+
+        logger.info("Loading %d cached package(s) into the engine: %s", len(to_load), to_load)
+        await self._load_igs_best_effort(to_load)
+
+    async def _load_igs_best_effort(self, igs: list[str]) -> None:
+        """Shared by load_configured_packages()/load_all_cached_packages():
+        POST /loadIG for each of `igs`, logging and skipping (never raising)
+        any that fail."""
+        loaded: list[str] = []
+        failed: list[str] = []
+        async with self._ig_lock:
+            for pkg in igs:
+                if pkg in self._loaded_igs:
+                    continue
+                try:
+                    response = await self._client.post("/loadIG", json={"ig": pkg})
+                except httpx.HTTPError as exc:
+                    failed.append(pkg)
+                    logger.warning("Failed to load package %s: %s", pkg, exc)
+                    continue
+                if response.status_code >= 400:
+                    failed.append(pkg)
+                    logger.warning(
+                        "Failed to load package %s: %s %s", pkg, response.status_code, response.text
+                    )
+                    continue
+                self._loaded_igs.add(pkg)
+                loaded.append(pkg)
+
+        logger.info(
+            "Loaded %d/%d package(s) into the engine%s",
+            len(loaded),
+            len(igs),
+            f" (failed: {failed})" if failed else "",
+        )
 
     async def validate_resource(
         self,

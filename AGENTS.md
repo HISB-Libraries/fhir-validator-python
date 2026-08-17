@@ -116,14 +116,61 @@ listed in the `PACKAGES` env var (see table below), in the order given:
 
 Pure config reflection (`app/main.py::_package_summary`, splitting each
 `<id>#<version>` string on the first `#`) — it doesn't touch the
-`ValidatorEngine` at all, so it responds even if the engine isn't running or
-the packages aren't actually loaded/cached. It's a static "what does this
-deployment claim to support" list, not a live query of the engine's loaded
-IGs (that's what `GET /healthz`'s `loaded_igs` field is for) or the package
-cache on disk (that's `Settings.packages_dir`, see below) -- the three are
-independent and can drift out of sync if you change one without the others.
-`PACKAGES` defaults to exactly the IGs shipped in `packages/`, so update
-both together when adding/removing one.
+`ValidatorEngine` at all, so it responds even if the engine isn't running.
+It's the same list `ValidatorEngine.load_configured_packages()` (below)
+ensures are fetched/cached/loaded at startup, so it should generally match
+`GET /healthz`'s `loaded_igs` field — but the two are computed
+independently, so a package that fails to load (see best-effort loading
+below) would still show up here without actually being loaded.
+
+## Configuring `PACKAGES` and `DEFAULT_IG` via `.env`
+
+`PACKAGES` and `DEFAULT_IG` are read from `.env` (see `.env.example` for a
+template) specifically so they can be **edited without rebuilding the
+image** — for Docker deployments pass the file with `docker run --env-file
+.env ...` (or mount it at `/app/.env`) rather than baking it in. The
+Python-level defaults in `app/config.py` only serve as a fallback if no
+`.env`/env var is provided. Verified: running the *same* built image with
+vs. without `--env-file` produced different `loaded_igs` in `/healthz` —
+confirming the values genuinely come from the runtime environment, not
+something frozen into the image at build time.
+
+At startup, `ValidatorEngine.load_configured_packages()` ensures every
+package in `PACKAGES` plus `DEFAULT_IG` ends up loaded, via the same `POST
+/loadIG` used everywhere else:
+
+- Packages that are also present in `PACKAGES_DIR` ("**local IGs**" — not
+  published on the FHIR package registry, e.g. draft/ballot/ci-build
+  versions, see "Package cache preloading" below) are already sitting on
+  disk from the preload step that runs earlier in `start()`, so `/loadIG`
+  resolves them as instant cache hits — no network fetch.
+- Everything else is fetched from the FHIR package registry over the
+  network, the same way any ordinary `-ig`/`ig` reference would be.
+- Loading `DEFAULT_IG` (or any package) also recursively resolves *its own*
+  declared dependencies the same cache-first/network-fallback way, per the
+  FHIR Package Cache spec's recursive resolution rules — we don't write any
+  dependency-walking code ourselves; it's inherent validator behavior.
+
+We deliberately don't write any "is this package local" detection logic:
+the distinction falls out for free from the call order (preload local IGs
+to disk *before* requesting `/loadIG` for the full `PACKAGES` list) plus
+the validator's own cache-first/network-fallback package resolution.
+
+Verified against the real jar/registry: `packages/` contains exactly two
+genuinely unpublished packages (`hl7.fhir.us.vdor#0.1.1-cibuild` and
+`hl7.fhir.us.mdi#3.0.0-draft` -- confirmed absent from packages.fhir.org,
+which only lists `hl7.fhir.us.mdi` up to `2.0.0-snapshot2`); the other 5
+entries in the default `PACKAGES` list (`hl7.fhir.us.core#5.0.1`,
+`hl7.fhir.us.mdi#2.0.0`, `hl7.fhir.us.bser#2.0.0-ballot`,
+`hl7.fhir.us.vr-common-library#2.0.0`, `hl7.fhir.us.vrdr#3.0.0`) are all
+genuinely published and are fetched over the network every time from a
+fresh cache. A real container run showed `Installing ... to the package
+cache` for each of those 5, and `Loading IG: ...` -> `IG loaded
+successfully` with **no** `Installing` line for the two local ones --
+confirming the local/remote split is real, not just log noise. Don't assume
+"published" for any new package added to `packages/` without checking
+packages.fhir.org first (see mdi#3.0.0-draft above for why that assumption
+already broke once).
 
 ## Development commands
 
@@ -195,12 +242,14 @@ for it.
 copies any `<packageId>#<version>` folders found in `Settings.packages_dir`
 (default: `packages/`, relative to cwd) into `$HOME/.fhir/packages`,
 **skipping any package that's already cached** (never overwrites/refreshes
-an existing entry — this is a one-time seed, not a sync). Repo layout
-expected:
+an existing entry — this is a one-time seed, not a sync). These are the
+"local IGs" referenced elsewhere in this doc — IGs not published on the
+FHIR package registry (draft/ballot/ci-build versions), so this folder is
+the *only* place they can come from. Repo layout expected:
 
 ```
 packages/
-  hl7.fhir.us.core#5.0.1/
+  hl7.fhir.us.vdor#0.1.1-cibuild/
     package/
       package.json
       StructureDefinition-....json
@@ -229,6 +278,40 @@ copied into `/root/.fhir/packages` (log line `Preloaded N package(s)...`)
 *before* the validator subprocess even launched, and `/loadIG` for one of
 them completed with `Load ... (00:00.000)` -- i.e. no fetch.
 
+## Loading cached packages into the engine at startup
+
+Preloading (above) only puts packages on *disk*; it doesn't load them into
+the *running engine's* memory -- that still happened lazily, only when a
+request's `ig` parameter referenced one (via `ensure_igs_loaded()` ->
+`POST /loadIG`).
+
+`ValidatorEngine.load_all_cached_packages()` closes that gap: after the
+engine reports ready, it scans the **entire** actual FHIR package cache
+(`~/.fhir/packages` -- not just `packages_dir`, everything found there,
+including whatever was already cached from prior runs/unrelated activity)
+and `POST /loadIG`s every package not already loaded. Controlled by
+`LOAD_CACHED_PACKAGES_ON_STARTUP` (default `true`).
+
+This is deliberately **best-effort, not fail-fast**: `~/.fhir/packages` is a
+shared, long-lived directory that can accumulate packages from unrelated
+prior activity -- multiple FHIR versions, multiple versions of the same IG,
+etc. (verified on a real dev machine: a cache with both `hl7.fhir.r4.core`
+and `hl7.fhir.r5.core`, plus several versions each of `hl7.terminology.r4`
+and `hl7.fhir.us.core`). A failure loading any one package is logged and
+skipped; it does not raise, abort startup, or block the others. Verified
+against the real jar with a 36-package "dirty" cache like this -- all 37
+(36 + 1 newly preloaded) loaded successfully in ~49s with zero failures,
+but the code does not assume that will always be true.
+
+**Test hygiene note:** `tests/test_validator_engine.py`'s `_engine_with_command()`
+helper defaults `load_cached_packages_on_startup=False`, `packages`/`default_ig`
+to empty strings, and `packages_dir` to a nonexistent path, specifically so
+subprocess-lifecycle tests never touch this machine's real `~/.fhir/packages`
+or the repo's own `packages/` folder, or make an unexpected `/loadIG` call
+using the real `PACKAGES` default. If you add a new test that calls
+`engine.start()` directly (bypassing this helper), carry that same isolation
+forward -- don't let a test's default settings resolve to real paths.
+
 ## Environment variables (`app/config.py`)
 
 | Var | Default | Notes |
@@ -243,7 +326,9 @@ them completed with `Load ... (00:00.000)` -- i.e. no fetch.
 | `VALIDATOR_STARTUP_TIMEOUT_SECONDS` | `300` | cold start with big IGs can take minutes |
 | `VALIDATOR_REQUEST_TIMEOUT_SECONDS` | `120` | per-request httpx timeout to the engine |
 | `PACKAGES_DIR` | `packages` | dir of pre-extracted packages copied into `$HOME/.fhir/packages` on startup, see "Package cache preloading" above; missing dir is a no-op |
-| `PACKAGES` | see `app/config.py` | comma-separated `<id>#<version>` list returned by `GET /fhir/$packages`; defaults to the IGs shipped in `packages/` -- pure string reflection, not validated against what's actually cached/loaded |
+| `LOAD_CACHED_PACKAGES_ON_STARTUP` | `true` | load every package found in `$HOME/.fhir/packages` into the running engine at startup, see "Loading cached packages into the engine at startup" above; best-effort, set `false` for purely lazy/on-demand loading |
+| `PACKAGES` | see `app/config.py` | comma-separated `<id>#<version>` list; canonical source is `.env` (see `.env.example`), not this Python-level fallback -- returned by `GET /fhir/$packages` *and* fetched/cached/loaded into the engine at startup, see "Configuring PACKAGES and DEFAULT_IG via .env" above |
+| `DEFAULT_IG` | `` (empty) | primary `<id>#<version>` IG for this deployment; loaded (with dependencies auto-resolved) alongside `PACKAGES` at startup, see above; canonical source is also `.env` |
 
 The public FastAPI port is set via the ASGI server invocation (`uvicorn
 app.main:app --port ...`), not an env var.

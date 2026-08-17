@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from app.package_cache import preload_packages
+from app.package_cache import list_cached_packages, preload_packages
 
 
 def _make_package_dir(root: Path, name: str, with_stray_file: bool = False) -> Path:
@@ -84,3 +84,25 @@ def test_preload_does_not_leave_tmp_dir_behind(tmp_path: Path):
 
     leftovers = [p.name for p in cache.iterdir()]
     assert leftovers == ["hl7.fhir.us.core#5.0.1"]
+
+
+def test_list_cached_packages_returns_sorted_names(tmp_path: Path):
+    cache = tmp_path / "cache"
+    _make_package_dir(cache, "hl7.fhir.uv.ips#2.0.0")
+    _make_package_dir(cache, "hl7.fhir.us.core#5.0.1")
+
+    assert list_cached_packages(cache) == ["hl7.fhir.us.core#5.0.1", "hl7.fhir.uv.ips#2.0.0"]
+
+
+def test_list_cached_packages_ignores_non_package_entries(tmp_path: Path):
+    cache = tmp_path / "cache"
+    _make_package_dir(cache, "hl7.fhir.us.core#5.0.1")
+    (cache / ".DS_Store").write_bytes(b"\x00\x01")
+    (cache / "packages.ini").write_text("[cache]\nversion = 4\n")
+    (cache / "not-a-package").mkdir()
+
+    assert list_cached_packages(cache) == ["hl7.fhir.us.core#5.0.1"]
+
+
+def test_list_cached_packages_empty_when_dir_missing(tmp_path: Path):
+    assert list_cached_packages(tmp_path / "does-not-exist") == []
