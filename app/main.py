@@ -1,0 +1,141 @@
+"""FastAPI application exposing the FHIR `$validate` operation.
+
+Endpoint: POST /fhir/$validate  (base = hostname/fhir, per AGENTS.md)
+
+Startup pattern
+----------------
+On app startup, a single persistent `ValidatorEngine` (see
+app/validator_engine.py) is created and, unless `AUTO_START_VALIDATOR=false`,
+launched. It is stored on `app.state.validator_engine` so request handlers
+and tests can reach it without a global singleton.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+from contextlib import asynccontextmanager
+
+import httpx
+from fastapi import FastAPI, Request, Response
+
+from app.config import Settings
+from app.fhir_parameters import (
+    ParametersError,
+    build_operation_outcome,
+    parse_validate_parameters,
+    resolve_accept_format,
+)
+from app.fhir_xml import (
+    is_xml_content_type,
+    operation_outcome_to_xml,
+    parse_validate_parameters_xml,
+)
+from app.validator_engine import ValidatorEngine, ValidatorEngineError
+
+logger = logging.getLogger("fhir_validator")
+
+
+def _outcome_response(
+    status_code: int, severity: str, code: str, diagnostics: str, response_format: str
+) -> Response:
+    outcome = build_operation_outcome(severity, code, diagnostics)
+    if is_xml_content_type(response_format):
+        content = operation_outcome_to_xml(outcome)
+    else:
+        content = json.dumps(outcome).encode("utf-8")
+    return Response(content=content, status_code=status_code, media_type=response_format)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    settings: Settings = app.state.settings
+    engine = ValidatorEngine(settings)
+    app.state.validator_engine = engine
+    if settings.auto_start_validator:
+        await engine.start()
+    try:
+        yield
+    finally:
+        await engine.stop()
+
+
+def create_app(settings: Settings | None = None) -> FastAPI:
+    settings = settings or Settings()
+    logging.basicConfig(level=settings.log_level)
+
+    app = FastAPI(title="FHIR Validation Service", lifespan=lifespan)
+    app.state.settings = settings
+
+    @app.get("/healthz")
+    async def healthz(request: Request) -> dict:
+        engine: ValidatorEngine = request.app.state.validator_engine
+        return await engine.health()
+
+    @app.post("/fhir/$validate")
+    async def validate(request: Request) -> Response:
+        engine: ValidatorEngine = request.app.state.validator_engine
+        settings: Settings = request.app.state.settings
+
+        request_is_xml = is_xml_content_type(request.headers.get("content-type", ""))
+        # Default resource-content-type fallback matches the envelope's own
+        # representation; an explicit "format" parameter or Accept header
+        # always takes precedence over this.
+        default_resource_format = (
+            "application/fhir+xml" if request_is_xml else settings.default_response_format
+        )
+        response_format = resolve_accept_format(
+            request.headers.get("accept", ""), default_resource_format
+        )
+
+        body = await request.body()
+
+        try:
+            if request_is_xml:
+                validate_request = parse_validate_parameters_xml(body, default_resource_format)
+            else:
+                try:
+                    payload = json.loads(body)
+                except ValueError:
+                    return _outcome_response(
+                        400, "error", "invalid", "Request body is not valid JSON.", response_format
+                    )
+                validate_request = parse_validate_parameters(payload, default_resource_format)
+        except ParametersError as exc:
+            return _outcome_response(400, "error", "invalid", str(exc), response_format)
+
+        if not engine.is_running:
+            return _outcome_response(
+                503, "error", "transient", "Validator engine is not running.", response_format
+            )
+
+        try:
+            await engine.ensure_igs_loaded(validate_request.igs)
+            upstream = await engine.validate_resource(
+                content=validate_request.resource_content,
+                content_type=validate_request.format,
+                profiles=validate_request.profiles,
+                accept=response_format,
+            )
+        except ValidatorEngineError as exc:
+            return _outcome_response(502, "error", "exception", str(exc), response_format)
+        except httpx.HTTPError as exc:
+            return _outcome_response(
+                502,
+                "error",
+                "exception",
+                f"Could not reach validator engine: {exc}",
+                response_format,
+            )
+
+        content_type = upstream.headers.get("content-type", response_format)
+        return Response(
+            content=upstream.content,
+            status_code=upstream.status_code,
+            media_type=content_type,
+        )
+
+    return app
+
+
+app = create_app()

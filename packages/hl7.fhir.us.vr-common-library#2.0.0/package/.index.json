@@ -1,0 +1,746 @@
+{
+  "index-version" : 2,
+  "files" : [
+    {
+      "filename" : "ImplementationGuide-hl7.fhir.us.vr-common-library.json",
+      "resourceType" : "ImplementationGuide",
+      "id" : "hl7.fhir.us.vr-common-library",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ImplementationGuide/hl7.fhir.us.vr-common-library",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "CodeSystem-CodeSystem-country-code-vr.json",
+      "resourceType" : "CodeSystem",
+      "id" : "CodeSystem-country-code-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/CodeSystem/CodeSystem-country-code-vr",
+      "version" : "2.0.0",
+      "content" : "complete"
+    },
+    {
+      "filename" : "CodeSystem-CodeSystem-hispanic-origin-vr.json",
+      "resourceType" : "CodeSystem",
+      "id" : "CodeSystem-hispanic-origin-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/CodeSystem/CodeSystem-hispanic-origin-vr",
+      "version" : "2.0.0",
+      "content" : "complete"
+    },
+    {
+      "filename" : "CodeSystem-CodeSystem-jurisdictions-vr.json",
+      "resourceType" : "CodeSystem",
+      "id" : "CodeSystem-jurisdictions-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/CodeSystem/CodeSystem-jurisdictions-vr",
+      "version" : "2.0.0",
+      "content" : "complete"
+    },
+    {
+      "filename" : "CodeSystem-CodeSystem-local-observation-codes-vr.json",
+      "resourceType" : "CodeSystem",
+      "id" : "CodeSystem-local-observation-codes-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/CodeSystem/CodeSystem-local-observation-codes-vr",
+      "version" : "2.0.0",
+      "content" : "complete"
+    },
+    {
+      "filename" : "CodeSystem-CodeSystem-race-code-vr.json",
+      "resourceType" : "CodeSystem",
+      "id" : "CodeSystem-race-code-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/CodeSystem/CodeSystem-race-code-vr",
+      "version" : "2.0.0",
+      "content" : "complete"
+    },
+    {
+      "filename" : "CodeSystem-CodeSystem-race-recode-40-vr.json",
+      "resourceType" : "CodeSystem",
+      "id" : "CodeSystem-race-recode-40-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/CodeSystem/CodeSystem-race-recode-40-vr",
+      "version" : "2.0.0",
+      "content" : "complete"
+    },
+    {
+      "filename" : "CodeSystem-CodeSystem-us-states-territories-vr.json",
+      "resourceType" : "CodeSystem",
+      "id" : "CodeSystem-us-states-territories-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/CodeSystem/CodeSystem-us-states-territories-vr",
+      "version" : "2.0.0",
+      "content" : "complete"
+    },
+    {
+      "filename" : "CodeSystem-CodeSystem-vr-edit-flags.json",
+      "resourceType" : "CodeSystem",
+      "id" : "CodeSystem-vr-edit-flags",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/CodeSystem/CodeSystem-vr-edit-flags",
+      "version" : "2.0.0",
+      "content" : "complete"
+    },
+    {
+      "filename" : "CodeSystem-codesystem-ije-vr.json",
+      "resourceType" : "CodeSystem",
+      "id" : "codesystem-ije-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/CodeSystem/codesystem-ije-vr",
+      "version" : "2.0.0",
+      "content" : "not-present"
+    },
+    {
+      "filename" : "CodeSystem-codesystem-vr-component.json",
+      "resourceType" : "CodeSystem",
+      "id" : "codesystem-vr-component",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/CodeSystem/codesystem-vr-component",
+      "version" : "2.0.0",
+      "content" : "complete"
+    },
+    {
+      "filename" : "ConceptMap-ConceptMapBirthAttendantTitlesVitalRecords.json",
+      "resourceType" : "ConceptMap",
+      "id" : "ConceptMapBirthAttendantTitlesVitalRecords",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ConceptMap/ConceptMapBirthAttendantTitlesVitalRecords",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ConceptMap-ConceptMapBirthSexChildVitalRecords.json",
+      "resourceType" : "ConceptMap",
+      "id" : "ConceptMapBirthSexChildVitalRecords",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ConceptMap/ConceptMapBirthSexChildVitalRecords",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ConceptMap-ConceptMapBirthSexFetusVitalRecords.json",
+      "resourceType" : "ConceptMap",
+      "id" : "ConceptMapBirthSexFetusVitalRecords",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ConceptMap/ConceptMapBirthSexFetusVitalRecords",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ConceptMap-ConceptMapDateOfBirthEditFlagsVitalRecords.json",
+      "resourceType" : "ConceptMap",
+      "id" : "ConceptMapDateOfBirthEditFlagsVitalRecords",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ConceptMap/ConceptMapDateOfBirthEditFlagsVitalRecords",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ConceptMap-ConceptMapEditBypass01234VitalRecords.json",
+      "resourceType" : "ConceptMap",
+      "id" : "ConceptMapEditBypass01234VitalRecords",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ConceptMap/ConceptMapEditBypass01234VitalRecords",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ConceptMap-ConceptMapEducationLevelVitalRecords.json",
+      "resourceType" : "ConceptMap",
+      "id" : "ConceptMapEducationLevelVitalRecords",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ConceptMap/ConceptMapEducationLevelVitalRecords",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ConceptMap-ConceptMapHispanicNoUnknownVitalRecords.json",
+      "resourceType" : "ConceptMap",
+      "id" : "ConceptMapHispanicNoUnknownVitalRecords",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ConceptMap/ConceptMapHispanicNoUnknownVitalRecords",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ConceptMap-ConceptMapHispanicOriginVitalRecords.json",
+      "resourceType" : "ConceptMap",
+      "id" : "ConceptMapHispanicOriginVitalRecords",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ConceptMap/ConceptMapHispanicOriginVitalRecords",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ConceptMap-ConceptMapMaritalStatusVitalRecords.json",
+      "resourceType" : "ConceptMap",
+      "id" : "ConceptMapMaritalStatusVitalRecords",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ConceptMap/ConceptMapMaritalStatusVitalRecords",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ConceptMap-ConceptMapPluralityEditFlagsVitalRecords.json",
+      "resourceType" : "ConceptMap",
+      "id" : "ConceptMapPluralityEditFlagsVitalRecords",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ConceptMap/ConceptMapPluralityEditFlagsVitalRecords",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ConceptMap-ConceptMapRaceCodeVitalRecords.json",
+      "resourceType" : "ConceptMap",
+      "id" : "ConceptMapRaceCodeVitalRecords",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ConceptMap/ConceptMapRaceCodeVitalRecords",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ConceptMap-ConceptMapRaceMissingValueReasonVitalRecords.json",
+      "resourceType" : "ConceptMap",
+      "id" : "ConceptMapRaceMissingValueReasonVitalRecords",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ConceptMap/ConceptMapRaceMissingValueReasonVitalRecords",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ConceptMap-ConceptMapRaceRecode40VitalRecords.json",
+      "resourceType" : "ConceptMap",
+      "id" : "ConceptMapRaceRecode40VitalRecords",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ConceptMap/ConceptMapRaceRecode40VitalRecords",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ConceptMap-ConceptMapUnitsOfAgeVitalRecords.json",
+      "resourceType" : "ConceptMap",
+      "id" : "ConceptMapUnitsOfAgeVitalRecords",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ConceptMap/ConceptMapUnitsOfAgeVitalRecords",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ConceptMap-ConceptMapYesNoNotApplicableVitalRecords.json",
+      "resourceType" : "ConceptMap",
+      "id" : "ConceptMapYesNoNotApplicableVitalRecords",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ConceptMap/ConceptMapYesNoNotApplicableVitalRecords",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ConceptMap-ConceptMapYesNoUnknownNotApplicableVitalRecords.json",
+      "resourceType" : "ConceptMap",
+      "id" : "ConceptMapYesNoUnknownNotApplicableVitalRecords",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ConceptMap/ConceptMapYesNoUnknownNotApplicableVitalRecords",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ConceptMap-ConceptMapYesNoUnknownVitalRecords.json",
+      "resourceType" : "ConceptMap",
+      "id" : "ConceptMapYesNoUnknownVitalRecords",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ConceptMap/ConceptMapYesNoUnknownVitalRecords",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "Parameters-expansion-parameters-vr-common.json",
+      "resourceType" : "Parameters",
+      "id" : "expansion-parameters-vr-common"
+    },
+    {
+      "filename" : "StructureDefinition-AuxiliaryStateIdentifier1.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "AuxiliaryStateIdentifier1",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/AuxiliaryStateIdentifier1",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-AuxiliaryStateIdentifier2.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "AuxiliaryStateIdentifier2",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/AuxiliaryStateIdentifier2",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-BypassEditFlag.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "BypassEditFlag",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/BypassEditFlag",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-CertificateNumber.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "CertificateNumber",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/CertificateNumber",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-CityCode.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "CityCode",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/CityCode",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-DistrictCode.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "DistrictCode",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/DistrictCode",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Extension-jurisdiction-id-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Extension-jurisdiction-id-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/Extension-jurisdiction-id-vr",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Extension-partial-date-time-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Extension-partial-date-time-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/Extension-partial-date-time-vr",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Extension-partial-date-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Extension-partial-date-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/Extension-partial-date-vr",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Extension-patient-fetal-death-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Extension-patient-fetal-death-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/Extension-patient-fetal-death-vr",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Extension-relatedperson-birthplace-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Extension-relatedperson-birthplace-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/Extension-relatedperson-birthplace-vr",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Extension-reported-parent-age-at-delivery-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Extension-reported-parent-age-at-delivery-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/Extension-reported-parent-age-at-delivery-vr",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Extension-within-city-limits-indicator-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Extension-within-city-limits-indicator-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/Extension-within-city-limits-indicator-vr",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Location-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Location-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/Location-vr",
+      "version" : "2.0.0",
+      "kind" : "resource",
+      "type" : "Location",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Observation-education-level-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Observation-education-level-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/Observation-education-level-vr",
+      "version" : "2.0.0",
+      "kind" : "resource",
+      "type" : "Observation",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Observation-emerging-issues-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Observation-emerging-issues-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/Observation-emerging-issues-vr",
+      "version" : "2.0.0",
+      "kind" : "resource",
+      "type" : "Observation",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Patient-child-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Patient-child-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/Patient-child-vr",
+      "version" : "2.0.0",
+      "kind" : "resource",
+      "type" : "Patient",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Patient-mother-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Patient-mother-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/Patient-mother-vr",
+      "version" : "2.0.0",
+      "kind" : "resource",
+      "type" : "Patient",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Patient-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Patient-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/Patient-vr",
+      "version" : "2.0.0",
+      "kind" : "resource",
+      "type" : "Patient",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-PostDirectional.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "PostDirectional",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/PostDirectional",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Practitioner-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Practitioner-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/Practitioner-vr",
+      "version" : "2.0.0",
+      "kind" : "resource",
+      "type" : "Practitioner",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-PreDirectional.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "PreDirectional",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/PreDirectional",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-RelatedPerson-father-natural-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "RelatedPerson-father-natural-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/RelatedPerson-father-natural-vr",
+      "version" : "2.0.0",
+      "kind" : "resource",
+      "type" : "RelatedPerson",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-RelatedPerson-father-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "RelatedPerson-father-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/RelatedPerson-father-vr",
+      "version" : "2.0.0",
+      "kind" : "resource",
+      "type" : "RelatedPerson",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-RelatedPerson-mother-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "RelatedPerson-mother-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/RelatedPerson-mother-vr",
+      "version" : "2.0.0",
+      "kind" : "resource",
+      "type" : "RelatedPerson",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-RelatedPerson-parent-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "RelatedPerson-parent-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/RelatedPerson-parent-vr",
+      "version" : "2.0.0",
+      "kind" : "resource",
+      "type" : "RelatedPerson",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-StreetDesignator.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "StreetDesignator",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/StreetDesignator",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-StreetName.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "StreetName",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/StreetName",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-StreetNumber.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "StreetNumber",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/StreetNumber",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-UnitOrAptNumber.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "UnitOrAptNumber",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/UnitOrAptNumber",
+      "version" : "2.0.0",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-coded-race-and-ethnicity-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "coded-race-and-ethnicity-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/coded-race-and-ethnicity-vr",
+      "version" : "2.0.0",
+      "kind" : "resource",
+      "type" : "Observation",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-input-race-and-ethnicity-vr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "input-race-and-ethnicity-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/input-race-and-ethnicity-vr",
+      "version" : "2.0.0",
+      "kind" : "resource",
+      "type" : "Observation",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-birth-attendant-titles-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-birth-attendant-titles-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-birth-attendant-titles-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-birthplace-country-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-birthplace-country-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-birthplace-country-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-coded-race-and-ethnicity-person-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-coded-race-and-ethnicity-person-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-coded-race-and-ethnicity-person-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-date-of-birth-edit-flags-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-date-of-birth-edit-flags-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-date-of-birth-edit-flags-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-education-level-person-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-education-level-person-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-education-level-person-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-education-level-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-education-level-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-education-level-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-father-relationship-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-father-relationship-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-father-relationship-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-hispanic-origin-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-hispanic-origin-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-hispanic-origin-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-ije-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-ije-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-ije-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-input-race-and-ethnicity-person-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-input-race-and-ethnicity-person-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-input-race-and-ethnicity-person-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-jurisdiction-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-jurisdiction-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-jurisdiction-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-marital-status-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-marital-status-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-marital-status-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-mother-relationship-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-mother-relationship-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-mother-relationship-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-partial-date-data-absent-reason-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-partial-date-data-absent-reason-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-partial-date-data-absent-reason-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-plurality-edit-flags-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-plurality-edit-flags-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-plurality-edit-flags-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-race-code-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-race-code-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-race-code-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-race-missing-value-reason-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-race-missing-value-reason-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-race-missing-value-reason-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-race-recode-40-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-race-recode-40-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-race-recode-40-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-residence-country-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-residence-country-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-residence-country-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-role-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-role-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-role-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-sex-assigned-at-birth-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-sex-assigned-at-birth-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-sex-assigned-at-birth-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-states-territories-provinces-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-states-territories-provinces-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-states-territories-provinces-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-units-of-age-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-units-of-age-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-units-of-age-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-usstates-territories-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-usstates-territories-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-usstates-territories-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-usstates-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-usstates-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-usstates-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-usterritories-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-usterritories-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-usterritories-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-yes-no-not-applicable-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-yes-no-not-applicable-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-yes-no-not-applicable-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-yes-no-unknown-not-applicable-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-yes-no-unknown-not-applicable-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-yes-no-unknown-not-applicable-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-ValueSet-yes-no-unknown-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "ValueSet-yes-no-unknown-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/ValueSet-yes-no-unknown-vr",
+      "version" : "2.0.0"
+    },
+    {
+      "filename" : "ValueSet-valueset-edit-bypass-01234-vr.json",
+      "resourceType" : "ValueSet",
+      "id" : "valueset-edit-bypass-01234-vr",
+      "url" : "http://hl7.org/fhir/us/vr-common-library/ValueSet/valueset-edit-bypass-01234-vr",
+      "version" : "2.0.0"
+    }
+  ]
+}

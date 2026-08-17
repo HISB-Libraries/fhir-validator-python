@@ -1,0 +1,863 @@
+{
+  "index-version" : 2,
+  "files" : [{
+    "filename" : "ImplementationGuide-hl7.fhir.us.vdor.json",
+    "resourceType" : "ImplementationGuide",
+    "id" : "hl7.fhir.us.vdor",
+    "url" : "http://hl7.org/fhir/us/vdor/ImplementationGuide/hl7.fhir.us.vdor",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "CodeSystem-nvdrs-coding-manual-cs.json",
+    "resourceType" : "CodeSystem",
+    "id" : "nvdrs-coding-manual-cs",
+    "url" : "http://hl7.org/fhir/us/vdor/CodeSystem/nvdrs-coding-manual-cs",
+    "version" : "0.1.1-cibuild",
+    "content" : "complete"
+  },
+  {
+    "filename" : "CodeSystem-vdor-custom-code-system.json",
+    "resourceType" : "CodeSystem",
+    "id" : "vdor-custom-code-system",
+    "url" : "http://hl7.org/fhir/us/vdor/CodeSystem/vdor-custom-code-system",
+    "version" : "0.1.1-cibuild",
+    "content" : "complete"
+  },
+  {
+    "filename" : "CodeSystem-vdor-ncic-gun-data.json",
+    "resourceType" : "CodeSystem",
+    "id" : "vdor-ncic-gun-data",
+    "url" : "http://hl7.org/fhir/us/vdor/CodeSystem/vdor-ncic-gun-data",
+    "version" : "0.1.1-cibuild",
+    "content" : "complete"
+  },
+  {
+    "filename" : "CodeSystem-vdor-nvdrs-gun-models.json",
+    "resourceType" : "CodeSystem",
+    "id" : "vdor-nvdrs-gun-models",
+    "url" : "http://hl7.org/fhir/us/vdor/CodeSystem/vdor-nvdrs-gun-models",
+    "version" : "0.1.1-cibuild",
+    "content" : "complete"
+  },
+  {
+    "filename" : "StructureDefinition-identifier-extension.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "identifier-extension",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/identifier-extension",
+    "version" : "0.1.1-cibuild",
+    "kind" : "complex-type",
+    "type" : "Extension",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-nvdrs-force-new-record-extension.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "nvdrs-force-new-record-extension",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/nvdrs-force-new-record-extension",
+    "version" : "0.1.1-cibuild",
+    "kind" : "complex-type",
+    "type" : "Extension",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-nvdrs-incident-year-extension.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "nvdrs-incident-year-extension",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/nvdrs-incident-year-extension",
+    "version" : "0.1.1-cibuild",
+    "kind" : "complex-type",
+    "type" : "Extension",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-nvdrs-overwrite-conflicts-extension.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "nvdrs-overwrite-conflicts-extension",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/nvdrs-overwrite-conflicts-extension",
+    "version" : "0.1.1-cibuild",
+    "kind" : "complex-type",
+    "type" : "Extension",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-circumstances.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-circumstances",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-circumstances",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-composition.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-composition",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-composition",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Composition",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-current-depressed-mood.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-current-depressed-mood",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-current-depressed-mood",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-death-abuse.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-death-abuse",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-death-abuse",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-decedent.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-decedent",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-decedent",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Patient",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-demographics-social-history.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-demographics-social-history",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-demographics-social-history",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-demographics.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-demographics",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-demographics",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-document-bundle.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-document-bundle",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-document-bundle",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Bundle",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-drive-by-shooting.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-drive-by-shooting",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-drive-by-shooting",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-drug-misuse.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-drug-misuse",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-drug-misuse",
+    "version" : "0.1.1-cibuild",
+    "kind" : "complex-type",
+    "type" : "Extension",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-ems-at-scene.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-ems-at-scene",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-ems-at-scene",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-firearm-gun-access-narrative-extension.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-firearm-gun-access-narrative-extension",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-firearm-gun-access-narrative-extension",
+    "version" : "0.1.1-cibuild",
+    "kind" : "complex-type",
+    "type" : "Extension",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-firearm-owner-extension.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-firearm-owner-extension",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-firearm-owner-extension",
+    "version" : "0.1.1-cibuild",
+    "kind" : "complex-type",
+    "type" : "Extension",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-firearm-serial-number.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-firearm-serial-number",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-firearm-serial-number",
+    "version" : "0.1.1-cibuild",
+    "kind" : "complex-type",
+    "type" : "Extension",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-firearm-stolen-extension.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-firearm-stolen-extension",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-firearm-stolen-extension",
+    "version" : "0.1.1-cibuild",
+    "kind" : "complex-type",
+    "type" : "Extension",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-firearm-stored-loaded-extension.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-firearm-stored-loaded-extension",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-firearm-stored-loaded-extension",
+    "version" : "0.1.1-cibuild",
+    "kind" : "complex-type",
+    "type" : "Extension",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-firearm-stored-locked-extension.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-firearm-stored-locked-extension",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-firearm-stored-locked-extension",
+    "version" : "0.1.1-cibuild",
+    "kind" : "complex-type",
+    "type" : "Extension",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-firearm.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-firearm",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-firearm",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-gang-related.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-gang-related",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-gang-related",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-history-alcohol-use.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-history-alcohol-use",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-history-alcohol-use",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-history-of-mental-illness.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-history-of-mental-illness",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-history-of-mental-illness",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-history-of-self-harm.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-history-of-self-harm",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-history-of-self-harm",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-history-of-suicide-attempts.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-history-of-suicide-attempts",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-history-of-suicide-attempts",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-homeless-at-death.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-homeless-at-death",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-homeless-at-death",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-injury-and-death.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-injury-and-death",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-injury-and-death",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-number-of-bullets.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-number-of-bullets",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-number-of-bullets",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-od-bystanders-present.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-od-bystanders-present",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-od-bystanders-present",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-od-current-or-past-drug-misuse.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-od-current-or-past-drug-misuse",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-od-current-or-past-drug-misuse",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-od-evidence-of-drug-use.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-od-evidence-of-drug-use",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-od-evidence-of-drug-use",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-od-first-found-unresponsive.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-od-first-found-unresponsive",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-od-first-found-unresponsive",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-od-lnka.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-od-lnka",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-od-lnka",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-od-previous-overdose.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-od-previous-overdose",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-od-previous-overdose",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-od-recent-emergency-department-visit.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-od-recent-emergency-department-visit",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-od-recent-emergency-department-visit",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-od-recent-opiod-use-relapse.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-od-recent-opiod-use-relapse",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-od-recent-opiod-use-relapse",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-od-treatment-for-substance-use-disorder.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-od-treatment-for-substance-use-disorder",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-od-treatment-for-substance-use-disorder",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-od-type-of-overdose.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-od-type-of-overdose",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-od-type-of-overdose",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-od-use-of-prescription-morphine.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-od-use-of-prescription-morphine",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-od-use-of-prescription-morphine",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-overdose.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-overdose",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-overdose",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-person-left-a-suicide-note.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-person-left-a-suicide-note",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-person-left-a-suicide-note",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-playing-with-firearm.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-playing-with-firearm",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-playing-with-firearm",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-random-violence.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-random-violence",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-random-violence",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-school-problem.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-school-problem",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-school-problem",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-suicide-note-content.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-suicide-note-content",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-suicide-note-content",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-suspects.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-suspects",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-suspects",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-toxicology-findings.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-toxicology-findings",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-toxicology-findings",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-toxicology-specimen.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-toxicology-specimen",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-toxicology-specimen",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Specimen",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-toxicology-summary-alcohol.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-toxicology-summary-alcohol",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-toxicology-summary-alcohol",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-toxicology-summary-carbon-monoxide.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-toxicology-summary-carbon-monoxide",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-toxicology-summary-carbon-monoxide",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-toxicology-summary.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-toxicology-summary",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-toxicology-summary",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-toxicology.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-toxicology",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-toxicology",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-types-of-substance-use-disorder-treatments.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-types-of-substance-use-disorder-treatments",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-types-of-substance-use-disorder-treatments",
+    "version" : "0.1.1-cibuild",
+    "kind" : "complex-type",
+    "type" : "Extension",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-victim-in-custody-when-injured.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-victim-in-custody-when-injured",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-victim-in-custody-when-injured",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-weapon-type.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-weapon-type",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-weapon-type",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-weapons.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-weapons",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-weapons",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "StructureDefinition-vdor-wound-location.json",
+    "resourceType" : "StructureDefinition",
+    "id" : "vdor-wound-location",
+    "url" : "http://hl7.org/fhir/us/vdor/StructureDefinition/vdor-wound-location",
+    "version" : "0.1.1-cibuild",
+    "kind" : "resource",
+    "type" : "Observation",
+    "derivation" : "constraint"
+  },
+  {
+    "filename" : "ValueSet-ncic-firearm-make-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "ncic-firearm-make-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/ncic-firearm-make-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-nvdrs-document-types-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "nvdrs-document-types-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/nvdrs-document-types-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-nvdrs-firearm-caliber-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "nvdrs-firearm-caliber-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/nvdrs-firearm-caliber-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-nvdrs-firearm-gauge-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "nvdrs-firearm-gauge-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/nvdrs-firearm-gauge-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-nvdrs-firearm-model-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "nvdrs-firearm-model-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/nvdrs-firearm-model-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-nvdrs-firearm-type-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "nvdrs-firearm-type-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/nvdrs-firearm-type-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-nvdrs-gang-related-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "nvdrs-gang-related-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/nvdrs-gang-related-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-nvdrs-weapon-type-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "nvdrs-weapon-type-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/nvdrs-weapon-type-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-nvdrs-wound-location-values-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "nvdrs-wound-location-values-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/nvdrs-wound-location-values-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-bystanders-present-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-bystanders-present-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-bystanders-present-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-circumstances-category-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-circumstances-category-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-circumstances-category-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-demographics-category-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-demographics-category-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-demographics-category-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-drug-misuse-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-drug-misuse-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-drug-misuse-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-gun-owner-codes-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-gun-owner-codes-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-gun-owner-codes-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-injury-and-death-category-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-injury-and-death-category-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-injury-and-death-category-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-overdose-category-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-overdose-category-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-overdose-category-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-previous-overdose-timing-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-previous-overdose-timing-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-previous-overdose-timing-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-previous-overdose-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-previous-overdose-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-previous-overdose-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-recent-emergency-department-visit-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-recent-emergency-department-visit-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-recent-emergency-department-visit-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-recent-opiod-use-relapse-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-recent-opiod-use-relapse-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-recent-opiod-use-relapse-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-suspects-category-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-suspects-category-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-suspects-category-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-tox-findings-drug-obtained-for-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-tox-findings-drug-obtained-for-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-tox-findings-drug-obtained-for-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-tox-findings-substance-results-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-tox-findings-substance-results-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-tox-findings-substance-results-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-tox-substance-tested-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-tox-substance-tested-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-tox-substance-tested-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-tox-summary-carbon-monoxide-source-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-tox-summary-carbon-monoxide-source-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-tox-summary-carbon-monoxide-source-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-tox-summary-results-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-tox-summary-results-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-tox-summary-results-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-toxicology-summary-tests-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-toxicology-summary-tests-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-toxicology-summary-tests-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-treatment-for-substance-use-disorder-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-treatment-for-substance-use-disorder-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-treatment-for-substance-use-disorder-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-type-of-overdose-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-type-of-overdose-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-type-of-overdose-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-types-of-treatment-for-substance-use-disorder-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-types-of-treatment-for-substance-use-disorder-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-types-of-treatment-for-substance-use-disorder-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-use-of-prescription-morphine-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-use-of-prescription-morphine-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-use-of-prescription-morphine-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-weapons-category-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-weapons-category-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-weapons-category-vs",
+    "version" : "0.1.1-cibuild"
+  },
+  {
+    "filename" : "ValueSet-vdor-wound-location-vs.json",
+    "resourceType" : "ValueSet",
+    "id" : "vdor-wound-location-vs",
+    "url" : "http://hl7.org/fhir/us/vdor/ValueSet/vdor-wound-location-vs",
+    "version" : "0.1.1-cibuild"
+  }]
+}

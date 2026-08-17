@@ -1,0 +1,355 @@
+{
+  "index-version" : 2,
+  "files" : [
+    {
+      "filename" : "ImplementationGuide-hl7.fhir.us.mdi.json",
+      "resourceType" : "ImplementationGuide",
+      "id" : "hl7.fhir.us.mdi",
+      "url" : "http://hl7.org/fhir/us/mdi/ImplementationGuide/hl7.fhir.us.mdi",
+      "version" : "3.0.0-draft"
+    },
+    {
+      "filename" : "CapabilityStatement-CapabilityStatement-edrs-server.json",
+      "resourceType" : "CapabilityStatement",
+      "id" : "CapabilityStatement-edrs-server",
+      "url" : "http://hl7.org/fhir/us/mdi/CapabilityStatement/CapabilityStatement-edrs-server",
+      "version" : "3.0.0-draft",
+      "kind" : "requirements"
+    },
+    {
+      "filename" : "CapabilityStatement-CapabilityStatement-forensic-toxicology-laboratory-server.json",
+      "resourceType" : "CapabilityStatement",
+      "id" : "CapabilityStatement-forensic-toxicology-laboratory-server",
+      "url" : "http://hl7.org/fhir/us/mdi/CapabilityStatement/CapabilityStatement-forensic-toxicology-laboratory-server",
+      "version" : "3.0.0-draft",
+      "kind" : "requirements"
+    },
+    {
+      "filename" : "CapabilityStatement-CapabilityStatement-mdi-cms-server.json",
+      "resourceType" : "CapabilityStatement",
+      "id" : "CapabilityStatement-mdi-cms-server",
+      "url" : "http://hl7.org/fhir/us/mdi/CapabilityStatement/CapabilityStatement-mdi-cms-server",
+      "version" : "3.0.0-draft",
+      "kind" : "requirements"
+    },
+    {
+      "filename" : "CodeSystem-cs-death-cert-review-example.json",
+      "resourceType" : "CodeSystem",
+      "id" : "cs-death-cert-review-example",
+      "url" : "http://hl7.org/fhir/us/mdi/CodeSystem/cs-death-cert-review-example",
+      "version" : "3.0.0-draft",
+      "content" : "complete"
+    },
+    {
+      "filename" : "CodeSystem-cs-mdi-codes.json",
+      "resourceType" : "CodeSystem",
+      "id" : "cs-mdi-codes",
+      "url" : "http://hl7.org/fhir/us/mdi/CodeSystem/cs-mdi-codes",
+      "version" : "3.0.0-draft",
+      "content" : "complete"
+    },
+    {
+      "filename" : "StructureDefinition-Bundle-document-mdi-and-edrs.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Bundle-document-mdi-and-edrs",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Bundle-document-mdi-and-edrs",
+      "version" : "3.0.0-draft",
+      "kind" : "resource",
+      "type" : "Bundle",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Bundle-document-mdi-dcr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Bundle-document-mdi-dcr",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Bundle-document-mdi-dcr",
+      "version" : "3.0.0-draft",
+      "kind" : "resource",
+      "type" : "Bundle",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Bundle-message-death-certificate-review.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Bundle-message-death-certificate-review",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Bundle-message-death-certificate-review",
+      "version" : "3.0.0-draft",
+      "kind" : "resource",
+      "type" : "Bundle",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Bundle-message-tox-to-mdi.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Bundle-message-tox-to-mdi",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Bundle-message-tox-to-mdi",
+      "version" : "3.0.0-draft",
+      "kind" : "resource",
+      "type" : "Bundle",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Composition-mdi-and-edrs.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Composition-mdi-and-edrs",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Composition-mdi-and-edrs",
+      "version" : "3.0.0-draft",
+      "kind" : "resource",
+      "type" : "Composition",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Composition-mdi-dcr.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Composition-mdi-dcr",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Composition-mdi-dcr",
+      "version" : "3.0.0-draft",
+      "kind" : "resource",
+      "type" : "Composition",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-DiagnosticReport-toxicology-to-mdi.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "DiagnosticReport-toxicology-to-mdi",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/DiagnosticReport-toxicology-to-mdi",
+      "version" : "3.0.0-draft",
+      "kind" : "resource",
+      "type" : "DiagnosticReport",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-DocumentReference-mdi-report.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "DocumentReference-mdi-report",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/DocumentReference-mdi-report",
+      "version" : "3.0.0-draft",
+      "kind" : "resource",
+      "type" : "DocumentReference",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Extension-cremation-clearance-coroner.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Extension-cremation-clearance-coroner",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Extension-cremation-clearance-coroner",
+      "version" : "3.0.0-draft",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Extension-cremation-clearance-signature.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Extension-cremation-clearance-signature",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Extension-cremation-clearance-signature",
+      "version" : "3.0.0-draft",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Extension-cremation-clearance-status.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Extension-cremation-clearance-status",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Extension-cremation-clearance-status",
+      "version" : "3.0.0-draft",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Extension-death-certificate-status.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Extension-death-certificate-status",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Extension-death-certificate-status",
+      "version" : "3.0.0-draft",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Extension-me-certification-affirmation.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Extension-me-certification-affirmation",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Extension-me-certification-affirmation",
+      "version" : "3.0.0-draft",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Extension-tracking-number.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Extension-tracking-number",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Extension-tracking-number",
+      "version" : "3.0.0-draft",
+      "kind" : "complex-type",
+      "type" : "Extension",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-MessageHeader-death-certificate-review.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "MessageHeader-death-certificate-review",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/MessageHeader-death-certificate-review",
+      "version" : "3.0.0-draft",
+      "kind" : "resource",
+      "type" : "MessageHeader",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-MessageHeader-toxicology-to-mdi.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "MessageHeader-toxicology-to-mdi",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/MessageHeader-toxicology-to-mdi",
+      "version" : "3.0.0-draft",
+      "kind" : "resource",
+      "type" : "MessageHeader",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Observation-communicable-disease.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Observation-communicable-disease",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Observation-communicable-disease",
+      "version" : "3.0.0-draft",
+      "kind" : "resource",
+      "type" : "Observation",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Observation-embalmed.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Observation-embalmed",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Observation-embalmed",
+      "version" : "3.0.0-draft",
+      "kind" : "resource",
+      "type" : "Observation",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Observation-mdi-cause-of-death-part1.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Observation-mdi-cause-of-death-part1",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Observation-mdi-cause-of-death-part1",
+      "version" : "3.0.0-draft",
+      "kind" : "resource",
+      "type" : "Observation",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Observation-medical-information-data-quality.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Observation-medical-information-data-quality",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Observation-medical-information-data-quality",
+      "version" : "3.0.0-draft",
+      "kind" : "resource",
+      "type" : "Observation",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Observation-personal-information-data-quality.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Observation-personal-information-data-quality",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Observation-personal-information-data-quality",
+      "version" : "3.0.0-draft",
+      "kind" : "resource",
+      "type" : "Observation",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Observation-toxicology-lab-result.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Observation-toxicology-lab-result",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Observation-toxicology-lab-result",
+      "version" : "3.0.0-draft",
+      "kind" : "resource",
+      "type" : "Observation",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Organization-crematorium.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Organization-crematorium",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Organization-crematorium",
+      "version" : "3.0.0-draft",
+      "kind" : "resource",
+      "type" : "Organization",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "StructureDefinition-Specimen-toxicology-lab.json",
+      "resourceType" : "StructureDefinition",
+      "id" : "Specimen-toxicology-lab",
+      "url" : "http://hl7.org/fhir/us/mdi/StructureDefinition/Specimen-toxicology-lab",
+      "version" : "3.0.0-draft",
+      "kind" : "resource",
+      "type" : "Specimen",
+      "derivation" : "constraint"
+    },
+    {
+      "filename" : "ValueSet-vs-certified-workflow.json",
+      "resourceType" : "ValueSet",
+      "id" : "vs-certified-workflow",
+      "url" : "http://hl7.org/fhir/us/mdi/ValueSet/vs-certified-workflow",
+      "version" : "3.0.0-draft"
+    },
+    {
+      "filename" : "ValueSet-vs-cremation-clearance-status.json",
+      "resourceType" : "ValueSet",
+      "id" : "vs-cremation-clearance-status",
+      "url" : "http://hl7.org/fhir/us/mdi/ValueSet/vs-cremation-clearance-status",
+      "version" : "3.0.0-draft"
+    },
+    {
+      "filename" : "ValueSet-vs-dcr-reason.json",
+      "resourceType" : "ValueSet",
+      "id" : "vs-dcr-reason",
+      "url" : "http://hl7.org/fhir/us/mdi/ValueSet/vs-dcr-reason",
+      "version" : "3.0.0-draft"
+    },
+    {
+      "filename" : "ValueSet-vs-me-cert-affirmation.json",
+      "resourceType" : "ValueSet",
+      "id" : "vs-me-cert-affirmation",
+      "url" : "http://hl7.org/fhir/us/mdi/ValueSet/vs-me-cert-affirmation",
+      "version" : "3.0.0-draft"
+    },
+    {
+      "filename" : "ValueSet-vs-med-dq-review.json",
+      "resourceType" : "ValueSet",
+      "id" : "vs-med-dq-review",
+      "url" : "http://hl7.org/fhir/us/mdi/ValueSet/vs-med-dq-review",
+      "version" : "3.0.0-draft"
+    },
+    {
+      "filename" : "ValueSet-vs-per-dq-review.json",
+      "resourceType" : "ValueSet",
+      "id" : "vs-per-dq-review",
+      "url" : "http://hl7.org/fhir/us/mdi/ValueSet/vs-per-dq-review",
+      "version" : "3.0.0-draft"
+    },
+    {
+      "filename" : "ValueSet-vs-registration.json",
+      "resourceType" : "ValueSet",
+      "id" : "vs-registration",
+      "url" : "http://hl7.org/fhir/us/mdi/ValueSet/vs-registration",
+      "version" : "3.0.0-draft"
+    },
+    {
+      "filename" : "ValueSet-vs-signature-status.json",
+      "resourceType" : "ValueSet",
+      "id" : "vs-signature-status",
+      "url" : "http://hl7.org/fhir/us/mdi/ValueSet/vs-signature-status",
+      "version" : "3.0.0-draft"
+    },
+    {
+      "filename" : "ValueSet-vs-tracking-number-type.json",
+      "resourceType" : "ValueSet",
+      "id" : "vs-tracking-number-type",
+      "url" : "http://hl7.org/fhir/us/mdi/ValueSet/vs-tracking-number-type",
+      "version" : "3.0.0-draft"
+    }
+  ]
+}
