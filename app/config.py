@@ -42,6 +42,21 @@ class Settings(BaseSettings):
     resolved against the process's current working directory. A missing directory is a
     no-op, not an error -- this is optional."""
 
+    # --- GET /fhir/$packages ---
+    packages: str = (
+        "hl7.fhir.us.vr-common-library#2.0.0,"
+        "hl7.fhir.us.vdor#0.1.1-cibuild,"
+        "hl7.fhir.us.mdi#3.0.0-draft,"
+        "hl7.fhir.us.mdi#2.0.0,"
+        "hl7.fhir.us.bser#2.0.0-ballot,"
+        "hl7.fhir.us.vrdr#3.0.0,"
+        "hl7.fhir.us.core#5.0.1"
+    )
+    """Comma-separated `<packageId>#<version>` list advertised by `GET /fhir/$packages`
+    (see `packages_list` below for the parsed form). Defaults to the IGs shipped in the
+    repo's `packages/` folder (see `packages_dir` above and app/package_cache.py) -- if
+    you add/remove a preloaded IG there, update this default too so the two stay in sync."""
+
     @property
     def startup_igs_list(self) -> list[str]:
         return [ig.strip() for ig in self.startup_igs.split(",") if ig.strip()]
@@ -49,6 +64,10 @@ class Settings(BaseSettings):
     @property
     def validator_extra_args_list(self) -> list[str]:
         return [arg.strip() for arg in self.validator_extra_args.split(",") if arg.strip()]
+
+    @property
+    def packages_list(self) -> list[str]:
+        return [pkg.strip() for pkg in self.packages.split(",") if pkg.strip()]
 
     # --- Process lifecycle ---
     validator_startup_timeout_seconds: float = 300.0

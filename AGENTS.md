@@ -11,6 +11,7 @@ FHIR Validator CLI (`validator_cli.jar`).
 +-------------------------------------------------------------------+
 |                        Python FastAPI App                         |
 |                     Endpoint: POST /fhir/$validate                |
+|                     Endpoint: GET  /fhir/$packages                |
 |                     Endpoint: GET  /healthz                       |
 +-------------------------------------------------------------------+
                                   |
@@ -78,6 +79,28 @@ which uses `app/fhir_xml.py::operation_outcome_to_xml` for the XML case).
 Note `app/fhir_xml.py` is a narrow, `$validate`-specific XML parser/serializer
 (just `ig`/`profile`/`format`/`resource` extraction and a fixed-shape
 OperationOutcome writer) — not a general FHIR XML<->JSON converter.
+
+## `GET /fhir/$packages`
+
+Returns a plain JSON array (not a FHIR resource) describing the packages
+listed in the `PACKAGES` env var (see table below), in the order given:
+
+```json
+[
+  {"name": "hl7.fhir.us.core", "version": "5.0.1", "canonicalUrl": "hl7.fhir.us.core#5.0.1"}
+]
+```
+
+Pure config reflection (`app/main.py::_package_summary`, splitting each
+`<id>#<version>` string on the first `#`) — it doesn't touch the
+`ValidatorEngine` at all, so it responds even if the engine isn't running or
+the packages aren't actually loaded/cached. It's a static "what does this
+deployment claim to support" list, not a live query of the engine's loaded
+IGs (that's what `GET /healthz`'s `loaded_igs` field is for) or the package
+cache on disk (that's `Settings.packages_dir`, see below) -- the three are
+independent and can drift out of sync if you change one without the others.
+`PACKAGES` defaults to exactly the IGs shipped in `packages/`, so update
+both together when adding/removing one.
 
 ## Development commands
 
@@ -191,6 +214,7 @@ you want these baked into the image too.
 | `VALIDATOR_STARTUP_TIMEOUT_SECONDS` | `300` | cold start with big IGs can take minutes |
 | `VALIDATOR_REQUEST_TIMEOUT_SECONDS` | `120` | per-request httpx timeout to the engine |
 | `PACKAGES_DIR` | `packages` | dir of pre-extracted packages copied into `$HOME/.fhir/packages` on startup, see "Package cache preloading" above; missing dir is a no-op |
+| `PACKAGES` | see `app/config.py` | comma-separated `<id>#<version>` list returned by `GET /fhir/$packages`; defaults to the IGs shipped in `packages/` -- pure string reflection, not validated against what's actually cached/loaded |
 
 The public FastAPI port is set via the ASGI server invocation (`uvicorn
 app.main:app --port ...`), not an env var.

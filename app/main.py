@@ -1,6 +1,9 @@
 """FastAPI application exposing the FHIR `$validate` operation.
 
-Endpoint: POST /fhir/$validate  (base = hostname/fhir, per AGENTS.md)
+Endpoints:
+  - POST /fhir/$validate  (base = hostname/fhir, per AGENTS.md)
+  - GET  /fhir/$packages  (advertises the `PACKAGES` env var, see app/config.py)
+  - GET  /healthz
 
 Startup pattern
 ----------------
@@ -47,6 +50,14 @@ def _outcome_response(
     return Response(content=content, status_code=status_code, media_type=response_format)
 
 
+def _package_summary(canonical: str) -> dict:
+    """Split a `<packageId>#<version>` string (package ids can't contain
+    "#", per the FHIR Package Cache spec) into the shape `GET /fhir/$packages`
+    returns."""
+    name, _, version = canonical.partition("#")
+    return {"name": name, "version": version, "canonicalUrl": canonical}
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings: Settings = app.state.settings
@@ -71,6 +82,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def healthz(request: Request) -> dict:
         engine: ValidatorEngine = request.app.state.validator_engine
         return await engine.health()
+
+    @app.get("/fhir/$packages")
+    async def packages(request: Request) -> list[dict]:
+        settings: Settings = request.app.state.settings
+        return [_package_summary(pkg) for pkg in settings.packages_list]
 
     @app.post("/fhir/$validate")
     async def validate(request: Request) -> Response:
