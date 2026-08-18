@@ -24,6 +24,13 @@ import httpx
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api_docs import (
+    CONVERT_REQUEST_BODY,
+    CONVERT_RESPONSES,
+    PACKAGES_EXAMPLE,
+    VALIDATE_REQUEST_BODY,
+    VALIDATE_RESPONSES,
+)
 from app.config import Settings
 from app.fhir_parameters import (
     ParametersError,
@@ -77,7 +84,31 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings()
     logging.basicConfig(level=settings.log_level)
 
-    app = FastAPI(title="FHIR Validation Service", lifespan=lifespan)
+    app = FastAPI(
+        title="FHIR Validation Service",
+        description=(
+            "FHIR Validation Service API fronting the HL7 FHIR Validator CLI "
+            "(`validator_cli.jar`), exposing `$validate`, `$convert`, and "
+            "`$packages` operations. See the project's AGENTS.md for the full "
+            "architecture and request contract writeup."
+        ),
+        lifespan=lifespan,
+        openapi_tags=[
+            {
+                "name": "Validation",
+                "description": "Validate a FHIR resource against loaded IGs/profiles.",
+            },
+            {
+                "name": "Conversion",
+                "description": "Convert a FHIR resource between its JSON and XML representations.",
+            },
+            {
+                "name": "Packages",
+                "description": "Inspect the FHIR IG packages configured for this deployment.",
+            },
+            {"name": "Health", "description": "Service/engine liveness."},
+        ],
+    )
     app.state.settings = settings
 
     # Enables CORS preflight `OPTIONS` handling on every route (Starlette's
@@ -91,17 +122,51 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_headers=["*"],
     )
 
-    @app.get("/healthz")
+    @app.get(
+        "/healthz",
+        tags=["Health"],
+        summary="Liveness/readiness check",
+        description="Reports whether the persistent validator engine subprocess is running.",
+    )
     async def healthz(request: Request) -> dict:
         engine: ValidatorEngine = request.app.state.validator_engine
         return await engine.health()
 
-    @app.get("/fhir/$packages")
+    @app.get(
+        "/fhir/$packages",
+        tags=["Packages"],
+        summary="List configured FHIR IG packages",
+        description=(
+            "Returns the packages listed in the `PACKAGES` env var (see AGENTS.md), "
+            "in the order given. Pure config reflection -- it doesn't touch the "
+            "validator engine, so it responds even if the engine isn't running."
+        ),
+        responses={
+            200: {
+                "description": "The configured packages.",
+                "content": {"application/json": {"example": PACKAGES_EXAMPLE}},
+            }
+        },
+    )
     async def packages(request: Request) -> list[dict]:
         settings: Settings = request.app.state.settings
         return [_package_summary(pkg) for pkg in settings.packages_list]
 
-    @app.post("/fhir/$validate")
+    @app.post(
+        "/fhir/$validate",
+        tags=["Validation"],
+        summary="Validate a FHIR resource",
+        description=(
+            "Validates a FHIR resource against the FHIR specification and, "
+            "optionally, one or more IG profiles. The request body is a FHIR "
+            "`Parameters` resource (see requestBody below) specifying the IG(s) "
+            "to load, the profile(s) to validate against, and the resource itself. "
+            "Response representation (JSON/XML) is chosen from the `Accept` header, "
+            "falling back to the request envelope's own format."
+        ),
+        openapi_extra={"requestBody": VALIDATE_REQUEST_BODY},
+        responses=VALIDATE_RESPONSES,
+    )
     async def validate(request: Request) -> Response:
         engine: ValidatorEngine = request.app.state.validator_engine
         settings: Settings = request.app.state.settings
@@ -164,7 +229,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             media_type=content_type,
         )
 
-    @app.post("/fhir/$convert")
+    @app.post(
+        "/fhir/$convert",
+        tags=["Conversion"],
+        summary="Convert a FHIR resource between JSON and XML",
+        description=(
+            "Converts a FHIR resource between its JSON and XML representations. "
+            "Unlike `$validate`, the body is the raw resource itself (no `Parameters` "
+            "wrapper). With no `Accept` header, the envelope format is flipped "
+            "(JSON in gives XML out and vice versa); an explicit `Accept` header "
+            "overrides the flip."
+        ),
+        openapi_extra={"requestBody": CONVERT_REQUEST_BODY},
+        responses=CONVERT_RESPONSES,
+    )
     async def convert(request: Request) -> Response:
         engine: ValidatorEngine = request.app.state.validator_engine
 
