@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from app.package_cache import list_cached_packages, preload_packages
+from app.package_cache import list_cached_packages, preload_package, preload_packages
 
 
 def _make_package_dir(root: Path, name: str, with_stray_file: bool = False) -> Path:
@@ -106,3 +106,51 @@ def test_list_cached_packages_ignores_non_package_entries(tmp_path: Path):
 
 def test_list_cached_packages_empty_when_dir_missing(tmp_path: Path):
     assert list_cached_packages(tmp_path / "does-not-exist") == []
+
+
+# --- preload_package() (single-package variant) ---
+
+
+def test_preload_package_copies_named_package(tmp_path: Path):
+    source = tmp_path / "packages"
+    cache = tmp_path / "cache"
+    _make_package_dir(source, "hl7.fhir.us.vdor#0.1.1-cibuild")
+
+    copied = preload_package("hl7.fhir.us.vdor#0.1.1-cibuild", source, cache)
+
+    assert copied is True
+    assert (cache / "hl7.fhir.us.vdor#0.1.1-cibuild" / "package" / "package.json").exists()
+
+
+def test_preload_package_returns_false_when_not_present_in_source(tmp_path: Path):
+    source = tmp_path / "packages"
+    cache = tmp_path / "cache"
+    _make_package_dir(source, "hl7.fhir.us.core#5.0.1")
+
+    copied = preload_package("hl7.fhir.us.vdor#0.1.1-cibuild", source, cache)
+
+    assert copied is False
+    assert not cache.exists()
+
+
+def test_preload_package_returns_false_when_already_cached(tmp_path: Path):
+    source = tmp_path / "packages"
+    cache = tmp_path / "cache"
+    _make_package_dir(source, "hl7.fhir.us.vdor#0.1.1-cibuild")
+    existing = cache / "hl7.fhir.us.vdor#0.1.1-cibuild" / "package"
+    existing.mkdir(parents=True)
+    (existing / "package.json").write_text("already here")
+
+    copied = preload_package("hl7.fhir.us.vdor#0.1.1-cibuild", source, cache)
+
+    assert copied is False
+    assert (existing / "package.json").read_text() == "already here"
+
+
+def test_preload_package_noop_when_source_dir_missing(tmp_path: Path):
+    copied = preload_package(
+        "hl7.fhir.us.vdor#0.1.1-cibuild", tmp_path / "does-not-exist", tmp_path / "cache"
+    )
+
+    assert copied is False
+    assert not (tmp_path / "cache").exists()

@@ -85,6 +85,17 @@ class Settings(BaseSettings):
     we don't need any extra dependency-walking code of our own for this.
     Empty (default) disables it."""
 
+    ci_build_repos: str = ""
+    """Comma-separated `<packageId>#<version>=<Org-or-User>/<Repo-Name>`
+    entries (e.g. "hl7.fhir.us.vdor#0.1.1-cibuild=HL7/fhir-vdor"). Used as
+    the *second* tier of the fallback chain `load_configured_packages()`
+    applies to each entry in `packages`/`default_ig`: 1) the FHIR package
+    registry, 2) for versions that look like drafts/ci-builds (see
+    `app/ci_build.py::is_ci_build_version`) and have an entry here, a direct
+    download of `https://build.fhir.org/ig/<Org-or-User>/<Repo-Name>/package.tgz`,
+    3) the local `packages_dir` folder. Packages not listed here skip
+    straight from tier 1 to tier 3."""
+
     @property
     def startup_igs_list(self) -> list[str]:
         return [ig.strip() for ig in self.startup_igs.split(",") if ig.strip()]
@@ -96,6 +107,16 @@ class Settings(BaseSettings):
     @property
     def packages_list(self) -> list[str]:
         return [pkg.strip() for pkg in self.packages.split(",") if pkg.strip()]
+
+    @property
+    def ci_build_repos_map(self) -> dict[str, str]:
+        mapping: dict[str, str] = {}
+        for entry in self.ci_build_repos.split(","):
+            pkg, _, repo = entry.strip().partition("=")
+            pkg, repo = pkg.strip(), repo.strip()
+            if pkg and repo:
+                mapping[pkg] = repo
+        return mapping
 
     # --- Process lifecycle ---
     validator_startup_timeout_seconds: float = 300.0

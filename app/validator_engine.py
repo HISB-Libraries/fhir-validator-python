@@ -20,11 +20,12 @@ from typing import Any
 
 import httpx
 
+from app.ci_build import download_ci_build_package, is_ci_build_version
 from app.config import Settings
 from app.package_cache import (
     default_fhir_package_cache_dir,
     list_cached_packages,
-    preload_packages,
+    preload_package,
 )
 
 logger = logging.getLogger("fhir_validator.engine")
@@ -84,15 +85,21 @@ class ValidatorEngine:
         if self.is_running:
             return
 
-        preloaded = await asyncio.to_thread(
-            preload_packages,
-            Path(self._settings.packages_dir),
-            default_fhir_package_cache_dir(),
-        )
-        if preloaded:
-            logger.info(
-                "Preloaded %d package(s) into the FHIR cache: %s", len(preloaded), preloaded
-            )
+        # STARTUP_IGS are passed straight to the validator jar as `-ig` args
+        # below (see _build_command) -- the jar resolves those itself
+        # (cache-first, network-fallback) the instant it starts, with no
+        # chance for us to intervene afterwards. So any of them that are
+        # local-only IGs (not published on the FHIR package registry) must
+        # already be on disk *before* we spawn it. This is unrelated to
+        # `packages`/`default_ig` below, which we load ourselves via
+        # `/loadIG` once the engine is up, and which apply the full
+        # registry -> build.fhir.org -> packages_dir fallback chain (see
+        # `load_configured_packages`) instead of unconditionally preloading.
+        packages_dir = Path(self._settings.packages_dir)
+        cache_dir = default_fhir_package_cache_dir()
+        for ig in self._settings.startup_igs_list:
+            if await asyncio.to_thread(preload_package, ig, packages_dir, cache_dir):
+                logger.info("Preloaded startup IG %s into the FHIR cache", ig)
 
         cmd = self._build_command()
         logger.info("Starting validator engine: %s", " ".join(cmd))
@@ -203,17 +210,12 @@ class ValidatorEngine:
         """Ensure every package listed in `PACKAGES` (see `GET /fhir/$packages`)
         plus `DEFAULT_IG` is loaded into the running engine.
 
-        This is the same `POST /loadIG` used everywhere else -- it resolves
-        cache-first, network-fallback, exactly like a request's `ig`
-        parameter would. The distinction between "local IGs" (present in
-        `packages_dir`, not published on the FHIR package registry) and
-        ordinary published packages isn't something we need to detect
-        ourselves: `preload_packages()` already copied the local ones onto
-        disk earlier in `start()`, so `/loadIG` finds them as instant cache
-        hits, while anything else here falls through to a real network
-        fetch from the registry -- and the registry lookup also recursively
-        resolves that package's own declared dependencies, so `DEFAULT_IG`'s
-        dependency tree is pulled in for free too.
+        Each package is tried against, in order, up to three tiers (see
+        `_load_configured_package`): the FHIR package registry, then (for
+        draft/ci-build-looking versions with a `CI_BUILD_REPOS` entry) a
+        direct download from build.fhir.org, then the local `packages_dir`
+        folder. Best-effort: a package that fails all three tiers is logged
+        and skipped, same as `load_all_cached_packages()` below.
         """
         targets: list[str] = []
         for pkg in [*self._settings.packages_list, self._settings.default_ig]:
@@ -225,7 +227,83 @@ class ValidatorEngine:
             return
 
         logger.info("Loading %d configured package(s) into the engine: %s", len(to_load), to_load)
-        await self._load_igs_best_effort(to_load)
+
+        loaded: list[str] = []
+        failed: list[str] = []
+        async with self._ig_lock:
+            for pkg in to_load:
+                if pkg in self._loaded_igs:
+                    continue
+                if await self._load_configured_package(pkg):
+                    loaded.append(pkg)
+                else:
+                    failed.append(pkg)
+
+        logger.info(
+            "Loaded %d/%d configured package(s) into the engine%s",
+            len(loaded),
+            len(to_load),
+            f" (failed: {failed})" if failed else "",
+        )
+
+    async def _try_load_ig(self, pkg: str) -> bool:
+        """POST /loadIG for a single package, returning whether it
+        succeeded (never raises)."""
+        try:
+            response = await self._client.post("/loadIG", json={"ig": pkg})
+        except httpx.HTTPError as exc:
+            logger.debug("loadIG failed for %s: %s", pkg, exc)
+            return False
+        if response.status_code >= 400:
+            logger.debug("loadIG failed for %s: %s %s", pkg, response.status_code, response.text)
+            return False
+        return True
+
+    async def _load_configured_package(self, pkg: str) -> bool:
+        """Load a single `packages`/`default_ig` entry into the engine,
+        trying up to three tiers in order and stopping at the first that
+        succeeds:
+
+        1. The FHIR package registry, via `/loadIG` (cache-first,
+           network-fallback -- inherent validator behavior).
+        2. For versions that look like drafts/ci-builds (see
+           `is_ci_build_version`) with a `CI_BUILD_REPOS` entry, a direct
+           download from build.fhir.org (see `app/ci_build.py`), then a
+           retry of `/loadIG`.
+        3. The local `packages_dir` folder (see `app/package_cache.py`),
+           then a final retry of `/loadIG`.
+
+        Returns whether the package ended up loaded; marks it in
+        `_loaded_igs` on success. Caller (`load_configured_packages`) holds
+        `_ig_lock` for the duration.
+        """
+        if await self._try_load_ig(pkg):
+            self._loaded_igs.add(pkg)
+            return True
+
+        package_id, _, version = pkg.partition("#")
+        cache_dir = default_fhir_package_cache_dir()
+
+        org_repo = self._settings.ci_build_repos_map.get(pkg)
+        if org_repo and is_ci_build_version(version):
+            logger.info(
+                "Package %s not available from the FHIR package registry; "
+                "trying build.fhir.org (%s)",
+                pkg,
+                org_repo,
+            )
+            if await download_ci_build_package(org_repo, package_id, version, cache_dir):
+                if await self._try_load_ig(pkg):
+                    self._loaded_igs.add(pkg)
+                    return True
+
+        preload_package(pkg, Path(self._settings.packages_dir), cache_dir)
+        if (cache_dir / pkg / "package").is_dir() and await self._try_load_ig(pkg):
+            self._loaded_igs.add(pkg)
+            return True
+
+        logger.warning("Failed to load configured package %s from any source", pkg)
+        return False
 
     async def load_all_cached_packages(self) -> None:
         """Load every package already present in the FHIR package cache

@@ -125,36 +125,65 @@ below) would still show up here without actually being loaded.
 
 ## Configuring `PACKAGES` and `DEFAULT_IG` via `.env`
 
-`PACKAGES` and `DEFAULT_IG` are read from `.env` (see `.env.example` for a
-template) specifically so they can be **edited without rebuilding the
-image** — for Docker deployments pass the file with `docker run --env-file
-.env ...` (or mount it at `/app/.env`) rather than baking it in. The
-Python-level defaults in `app/config.py` only serve as a fallback if no
-`.env`/env var is provided. Verified: running the *same* built image with
+`PACKAGES`, `DEFAULT_IG`, and `CI_BUILD_REPOS` are read from `.env` (see
+`.env.example` for a template) specifically so they can be **edited without
+rebuilding the image** — for Docker deployments pass the file with `docker
+run --env-file .env ...` (or mount it at `/app/.env`) rather than baking it
+in. The Python-level defaults in `app/config.py` only serve as a fallback if
+no `.env`/env var is provided. Verified: running the *same* built image with
 vs. without `--env-file` produced different `loaded_igs` in `/healthz` —
 confirming the values genuinely come from the runtime environment, not
 something frozen into the image at build time.
 
 At startup, `ValidatorEngine.load_configured_packages()` ensures every
-package in `PACKAGES` plus `DEFAULT_IG` ends up loaded, via the same `POST
-/loadIG` used everywhere else:
+package in `PACKAGES` plus `DEFAULT_IG` ends up loaded. Each one is tried
+against, in order, a **3-tier fallback chain** (`ValidatorEngine._load_configured_package`),
+stopping at the first tier that succeeds:
 
-- Packages that are also present in `PACKAGES_DIR` ("**local IGs**" — not
-  published on the FHIR package registry, e.g. draft/ballot/ci-build
-  versions, see "Package cache preloading" below) are already sitting on
-  disk from the preload step that runs earlier in `start()`, so `/loadIG`
-  resolves them as instant cache hits — no network fetch.
-- Everything else is fetched from the FHIR package registry over the
-  network, the same way any ordinary `-ig`/`ig` reference would be.
-- Loading `DEFAULT_IG` (or any package) also recursively resolves *its own*
-  declared dependencies the same cache-first/network-fallback way, per the
-  FHIR Package Cache spec's recursive resolution rules — we don't write any
-  dependency-walking code ourselves; it's inherent validator behavior.
+1. **The FHIR package registry**, via the same `POST /loadIG` used
+   everywhere else (which itself resolves cache-first/network-fallback —
+   inherent validator behavior, not something we write). This is tried
+   for *every* package, including ones also present in `packages/` — the
+   registry always gets first refusal.
+2. **A direct download from HL7's CI build server**
+   (`https://build.fhir.org/ig/<Org-or-User>/<Repo-Name>/package.tgz`, see
+   `app/ci_build.py`) — only attempted if tier 1 failed *and* the version
+   string looks like a draft/ci-build/screenshot build (`is_ci_build_version`
+   — deliberately excludes "ballot": ballot versions are routinely
+   published, see below) *and* the package has a matching entry in
+   `CI_BUILD_REPOS` (`<packageId>#<version>=<Org-or-User>/<Repo-Name>`).
+   We don't try to derive the GitHub org/repo from the package id — it's
+   not mechanically derivable (e.g. `hl7.fhir.us.mdi` builds from
+   `HL7/fhir-mdi-ig`, not `HL7/fhir-us-mdi` or `HL7/mdi` — read off the
+   `url` field of that package's own `package.json`, or the `repo` field
+   of the matching entry in `https://build.fhir.org/ig/qas.json`, to find
+   it for a new package). A successful download is extracted straight into
+   `$HOME/.fhir/packages/<packageId>#<version>`, then `/loadIG` is retried.
+3. **The repo's local `packages/` folder** (see "Package cache preloading"
+   below) — the true last resort, only reached if both network tiers
+   failed (e.g. the package is genuinely unpublished *and* either has no
+   `CI_BUILD_REPOS` entry or build.fhir.org is unreachable). The matching
+   folder is copied into `$HOME/.fhir/packages` and `/loadIG` is retried
+   one final time.
 
-We deliberately don't write any "is this package local" detection logic:
-the distinction falls out for free from the call order (preload local IGs
-to disk *before* requesting `/loadIG` for the full `PACKAGES` list) plus
-the validator's own cache-first/network-fallback package resolution.
+If every tier fails, the package is logged and skipped — loading is
+best-effort, same as `load_all_cached_packages()` below; it never aborts
+startup.
+
+Loading `DEFAULT_IG` (or any package, at any tier) also recursively resolves
+*its own* declared dependencies the same cache-first/network-fallback way,
+per the FHIR Package Cache spec's recursive resolution rules — we don't
+write any dependency-walking code ourselves for that part; it's inherent
+validator behavior.
+
+Note this is a deliberate change from just fetching everything through
+`/loadIG` and letting a preload step race it: earlier versions of this
+service copied every `packages/` entry into the cache *before* the engine
+started, which made local files an unconditional cache hit — effectively
+*first* priority for anything present there, not last. That's no longer how
+it works: `packages/` is now only consulted per-package, and only after
+both network tiers have already been tried and failed for that specific
+package.
 
 Verified against the real jar/registry: `packages/` contains exactly two
 genuinely unpublished packages (`hl7.fhir.us.vdor#0.1.1-cibuild` and
@@ -164,13 +193,15 @@ entries in the default `PACKAGES` list (`hl7.fhir.us.core#5.0.1`,
 `hl7.fhir.us.mdi#2.0.0`, `hl7.fhir.us.bser#2.0.0-ballot`,
 `hl7.fhir.us.vr-common-library#2.0.0`, `hl7.fhir.us.vrdr#3.0.0`) are all
 genuinely published and are fetched over the network every time from a
-fresh cache. A real container run showed `Installing ... to the package
-cache` for each of those 5, and `Loading IG: ...` -> `IG loaded
-successfully` with **no** `Installing` line for the two local ones --
-confirming the local/remote split is real, not just log noise. Don't assume
-"published" for any new package added to `packages/` without checking
-packages.fhir.org first (see mdi#3.0.0-draft above for why that assumption
-already broke once).
+fresh cache (tier 1, first try). The two unpublished ones both have a
+`CI_BUILD_REPOS` entry in `.env.example` pointing at their real
+build.fhir.org repo (`HL7/fhir-vdor`, `HL7/fhir-mdi-ig` — read off their
+`package.json`'s own `url` field), so in an environment with internet
+access they're expected to resolve at tier 2 rather than tier 3; `packages/`
+only takes over if build.fhir.org itself is unreachable (e.g. an air-gapped
+deployment). Don't assume "published" for any new package added to
+`PACKAGES` without checking packages.fhir.org first (see mdi#3.0.0-draft
+above for why that assumption already broke once).
 
 ## Development commands
 
@@ -235,17 +266,13 @@ a package is "installed" purely by the existence of a
 `<packageId>#<version>/package/...` folder under the cache root
 (`$HOME/.fhir/packages` — no separate manifest/registration step). That
 means preloading a package is just: put its already-extracted folder there
-*before* the validator subprocess starts, so it never needs a network fetch
-for it.
+before it's needed, so it never triggers a network fetch.
 
-`ValidatorEngine.start()` does this automatically on every startup: it
-copies any `<packageId>#<version>` folders found in `Settings.packages_dir`
-(default: `packages/`, relative to cwd) into `$HOME/.fhir/packages`,
-**skipping any package that's already cached** (never overwrites/refreshes
-an existing entry — this is a one-time seed, not a sync). These are the
-"local IGs" referenced elsewhere in this doc — IGs not published on the
-FHIR package registry (draft/ballot/ci-build versions), so this folder is
-the *only* place they can come from. Repo layout expected:
+`packages/` (default: `Settings.packages_dir`, relative to cwd) holds
+already-extracted `<packageId>#<version>/package/...` folders for **local
+IGs** — packages not published on the FHIR package registry (e.g.
+draft/ci-build versions) and not (yet, or ever) mirrored by HL7's CI build
+server either. Repo layout expected:
 
 ```
 packages/
@@ -262,27 +289,51 @@ packages/
 This is exactly the same folder shape as `$HOME/.fhir/packages` itself — you
 can drop in a package by copying it straight from an existing cache, or by
 extracting a `package.tgz` (`tar xzf package.tgz` into a dir named
-`<id>#<version>`, with the `.tgz`'s `package/` folder as-is). Verified
-manually: removed a real cached IG from `~/.fhir/packages`, restarted the
-engine, confirmed the folder came back byte-for-byte from `packages/`, and
-that `/loadIG` then succeeded for it.
+`<id>#<version>`, with the `.tgz`'s `package/` folder as-is).
+
+`app/package_cache.py` exposes two copy functions, both **skipping any
+package that's already cached** (never overwrite/refresh an existing
+entry — this is a one-time seed, not a sync):
+
+- `preload_package(name, source_dir, cache_dir)` — copies a single named
+  package. Used in two places: 1) `ValidatorEngine.start()`, for each
+  `STARTUP_IGS` entry, *before* the validator subprocess is spawned — those
+  are passed straight to the jar as `-ig` CLI args (see `_build_command`),
+  which the jar resolves itself the instant it starts, with no chance for
+  us to intervene afterwards, so any local-only one among them must already
+  be on disk. 2) `ValidatorEngine._load_configured_package()`, as the
+  **last-resort tier** of the `PACKAGES`/`DEFAULT_IG` fallback chain (see
+  "Configuring PACKAGES and DEFAULT_IG via .env" above) — only reached
+  after both the FHIR package registry and the build.fhir.org direct
+  download have already been tried and failed for that specific package.
+- `preload_packages(source_dir, cache_dir)` — the bulk (whole-directory)
+  variant, kept for callers that genuinely want everything in a folder
+  seeded at once; nothing in `ValidatorEngine` calls this anymore (see
+  below for why), but it's still exercised directly by
+  `tests/test_package_cache.py`.
+
+Note the deliberate change from earlier versions of this service: previously
+`ValidatorEngine.start()` called `preload_packages()` unconditionally on
+**every** `packages/` entry before the engine even launched, which made
+local files an unconditional cache hit for anything present there —
+effectively *first* priority, not last. That's no longer how `PACKAGES`/
+`DEFAULT_IG` work (see above); `packages/` is now consulted per-package, on
+demand, only after both network tiers have already failed for that specific
+package. `STARTUP_IGS` is the one remaining place that still preloads
+proactively, and only for the specific IGs it actually references — never
+the rest of `packages/`.
 
 The Dockerfile does `COPY packages ./packages` (before `pip install`), so
-these are baked into the image and preloaded automatically the moment a
-container starts -- no network fetch needed for them even on a totally
-fresh deployment/volume. This requires `packages/` to exist in the build
-context; if you fork this repo without that directory, remove that `COPY`
-line or `docker build` will fail. Verified: a container started from a
-fresh image with no pre-existing `/root/.fhir` volume had all packages
-copied into `/root/.fhir/packages` (log line `Preloaded N package(s)...`)
-*before* the validator subprocess even launched, and `/loadIG` for one of
-them completed with `Load ... (00:00.000)` -- i.e. no fetch.
+these are baked into the image regardless — a fresh container still never
+needs an actual `packages/`-repo checkout on the host to have the fallback
+tier available, it's just consulted lazily now rather than eagerly.
 
 ## Loading cached packages into the engine at startup
 
 Preloading (above) only puts packages on *disk*; it doesn't load them into
 the *running engine's* memory -- that still happened lazily, only when a
 request's `ig` parameter referenced one (via `ensure_igs_loaded()` ->
+
 `POST /loadIG`).
 
 `ValidatorEngine.load_all_cached_packages()` closes that gap: after the
@@ -329,6 +380,7 @@ forward -- don't let a test's default settings resolve to real paths.
 | `LOAD_CACHED_PACKAGES_ON_STARTUP` | `true` | load every package found in `$HOME/.fhir/packages` into the running engine at startup, see "Loading cached packages into the engine at startup" above; best-effort, set `false` for purely lazy/on-demand loading |
 | `PACKAGES` | see `app/config.py` | comma-separated `<id>#<version>` list; canonical source is `.env` (see `.env.example`), not this Python-level fallback -- returned by `GET /fhir/$packages` *and* fetched/cached/loaded into the engine at startup, see "Configuring PACKAGES and DEFAULT_IG via .env" above |
 | `DEFAULT_IG` | `` (empty) | primary `<id>#<version>` IG for this deployment; loaded (with dependencies auto-resolved) alongside `PACKAGES` at startup, see above; canonical source is also `.env` |
+| `CI_BUILD_REPOS` | `` (empty) | comma-separated `<id>#<version>=<Org-or-User>/<Repo-Name>` mapping used as tier 2 of the `PACKAGES`/`DEFAULT_IG` fallback chain, see "Configuring PACKAGES and DEFAULT_IG via .env" above; canonical source is also `.env` |
 | `CORS_ALLOW_ORIGINS` | `*` | comma-separated list of allowed CORS origins; also makes every route respond to CORS preflight `OPTIONS` requests via Starlette's `CORSMiddleware` (see `app/main.py`) |
 
 The public FastAPI port is set via the ASGI server invocation (`uvicorn
