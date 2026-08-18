@@ -93,6 +93,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "architecture and request contract writeup."
         ),
         lifespan=lifespan,
+        docs_url="/fhir/docs",
+        redoc_url="/fhir/redoc",
+        openapi_url="/fhir/openapi.json",
         openapi_tags=[
             {
                 "name": "Validation",
