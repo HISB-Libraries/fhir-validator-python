@@ -267,7 +267,10 @@ CONVERT_EXAMPLE_RESOURCE_JSON: dict[str, Any] = {
 }
 
 CONVERT_EXAMPLE_RESOURCE_XML = (
-    '<Patient xmlns="http://hl7.org/fhir"><name><family value="Doe"/></name></Patient>'
+    '<?xml version="1.0" encoding="UTF-8"?>'
+    '<Patient xmlns="http://hl7.org/fhir">'
+    '<name><family value="Doe"/><given value="Jane"/></name>'
+    "</Patient>"
 )
 
 CONVERT_REQUEST_BODY: dict[str, Any] = {
@@ -299,22 +302,20 @@ CONVERT_REQUEST_BODY: dict[str, Any] = {
 
 CONVERT_RESPONSES: dict[int | str, dict[str, Any]] = {
     200: {
+        # Deliberately no "content" media-type map here: Swagger UI's
+        # "Execute" auto-populates an Accept header from every media type
+        # listed under any *2xx* response's "content" (verified against
+        # swagger-ui-dist@5's bundled request-builder), which would defeat
+        # the "no Accept header -> format flip" behavior described below
+        # when trying this operation out from /fhir/docs. See the example
+        # payloads (CONVERT_EXAMPLE_RESOURCE_JSON/_XML above) for the
+        # possible output shapes instead.
         "description": (
             "The converted resource. With no Accept header, the envelope format is "
             "flipped (JSON in -> XML out and vice versa); an explicit "
             "'Accept: application/fhir+json' or 'application/fhir+xml' overrides the "
             "flip (e.g. for a JSON->JSON pretty-print)."
         ),
-        "content": {
-            "application/fhir+json": {
-                "schema": {"type": "object"},
-                "example": CONVERT_EXAMPLE_RESOURCE_JSON,
-            },
-            "application/fhir+xml": {
-                "schema": {"type": "string"},
-                "example": CONVERT_EXAMPLE_RESOURCE_XML,
-            },
-        },
     },
     400: _outcome_response(
         "Request body was empty.",

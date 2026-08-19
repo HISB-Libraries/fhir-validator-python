@@ -269,6 +269,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         ),
         openapi_extra={"requestBody": CONVERT_REQUEST_BODY},
         responses=CONVERT_RESPONSES,
+        # Without this, FastAPI's OpenAPI generation adds a default
+        # "application/json" entry to every response missing an explicit
+        # "content" map (based on the app-wide default response class),
+        # even though the 200 response here deliberately omits "content"
+        # (see CONVERT_RESPONSES) so Swagger UI's "Try it out" doesn't
+        # auto-populate an Accept header (see app/api_docs.py comment on
+        # CONVERT_RESPONSES[200]). `Response.media_type` is `None`, so this
+        # suppresses that default without changing runtime behavior -- the
+        # handler always returns its own fully-formed `Response` anyway.
+        response_class=Response,
     )
     async def convert(request: Request) -> Response:
         engine: ValidatorEngine = request.app.state.validator_engine
