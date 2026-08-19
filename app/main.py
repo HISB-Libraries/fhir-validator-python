@@ -98,6 +98,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         docs_url=f"{custom_path}/fhir/docs",
         redoc_url=f"{custom_path}/fhir/redoc",
         openapi_url=f"{custom_path}/fhir/openapi.json",
+        # Without this, the generated OpenAPI document has no "servers" entry,
+        # so Swagger UI's "Try it out"/"Execute" (and any other tooling that
+        # treats the spec's `paths` as directly callable) resolves operations
+        # like `/fhir/$validate` relative to the current origin -- silently
+        # dropping `custom_path` even though the docs/redoc/openapi routes
+        # above already carry it. Declaring it here as a server the actual
+        # endpoints are served under fixes that, independently of the
+        # docs_url/openapi_url path-prefixing above (`servers` only affects
+        # `openapi()`'s schema output, not route registration or docs/redoc's
+        # own openapi_url self-reference -- so this can't double up with it).
+        servers=[{"url": custom_path}] if custom_path else None,
         openapi_tags=[
             {
                 "name": "Validation",

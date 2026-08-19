@@ -37,3 +37,26 @@ def test_docs_urls_normalize_leading_and_trailing_slashes_in_custom_path():
         docs_response = test_client.get("/my-service/fhir/docs")
 
     assert docs_response.status_code == 200
+
+
+def test_openapi_schema_has_no_servers_entry_without_custom_path():
+    app = create_app(Settings(auto_start_validator=False))
+
+    with TestClient(app) as test_client:
+        schema = test_client.get("/fhir/openapi.json").json()
+
+    assert "servers" not in schema
+
+
+def test_openapi_schema_declares_custom_path_as_server():
+    # Reverse-proxy deployments that forward the full request path unchanged
+    # (rather than stripping their mount prefix) need the actual operations
+    # (e.g. `/fhir/$validate`) called under that same prefix too -- otherwise
+    # Swagger UI's "Try it out"/"Execute" (and any client generated from the
+    # spec) resolves them relative to the origin root, dropping the prefix.
+    app = create_app(Settings(auto_start_validator=False, custom_path="my-service"))
+
+    with TestClient(app) as test_client:
+        schema = test_client.get("/my-service/fhir/openapi.json").json()
+
+    assert schema["servers"] == [{"url": "/my-service"}]
