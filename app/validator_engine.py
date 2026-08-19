@@ -14,6 +14,7 @@ https://confluence.hl7.org/spaces/FHIR/pages/441520076/
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 from pathlib import Path
 from typing import Any
@@ -157,6 +158,8 @@ class ValidatorEngine:
 
         if self._settings.load_cached_packages_on_startup:
             await self.load_all_cached_packages()
+
+        await self.validate_initial_load_resource()
 
     async def _pump_logs(self, ready: asyncio.Event) -> None:
         """Continuously drain the subprocess's stdout (avoids pipe deadlock),
@@ -358,6 +361,70 @@ class ValidatorEngine:
             len(igs),
             f" (failed: {failed})" if failed else "",
         )
+
+    async def validate_initial_load_resource(self) -> None:
+        """Best-effort startup warm-up: validate `initial_load_resource_path`
+        (if configured, present, and `default_ig` is set) against the engine
+        now that `default_ig` and its dependencies have finished loading.
+
+        This exercises the full validate path once at startup -- surfacing
+        any IG/profile mismatch between the configured `default_ig` and the
+        sample resource in the logs immediately, rather than waiting for the
+        first real request to discover it. Purely diagnostic: it never
+        raises or blocks startup, regardless of the validation outcome.
+        """
+        if not self._settings.validate_initial_load_resource_on_startup:
+            return
+        if not self._settings.default_ig:
+            return
+
+        path = Path(self._settings.initial_load_resource_path)
+        if not path.is_file():
+            logger.debug("Initial load resource %s not found; skipping startup validation", path)
+            return
+
+        content = path.read_bytes()
+        content_type = (
+            "application/fhir+xml" if path.suffix.lower() == ".xml" else "application/fhir+json"
+        )
+
+        logger.info(
+            "Validating initial load resource %s against DEFAULT_IG %s",
+            path,
+            self._settings.default_ig,
+        )
+        try:
+            response = await self.validate_resource(
+                content=content,
+                content_type=content_type,
+                profiles=[],
+                accept="application/fhir+json",
+            )
+        except httpx.HTTPError as exc:
+            logger.warning("Startup validation of %s could not reach the engine: %s", path, exc)
+            return
+
+        issue_count: int | str = "?"
+        try:
+            outcome = json.loads(response.content)
+            issue_count = len(outcome.get("issue", []))
+        except ValueError:
+            pass
+
+        if response.status_code >= 400:
+            logger.warning(
+                "Startup validation of %s returned HTTP %s (%s issue(s)): %s",
+                path,
+                response.status_code,
+                issue_count,
+                response.text[:2000],
+            )
+        else:
+            logger.info(
+                "Startup validation of %s completed successfully (%s issue(s))",
+                path,
+                issue_count,
+            )
 
     async def validate_resource(
         self,

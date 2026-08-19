@@ -85,6 +85,17 @@ class Settings(BaseSettings):
     we don't need any extra dependency-walking code of our own for this.
     Empty (default) disables it."""
 
+    initial_load_resource_path: str = "initial_load_resource.json"
+    """Path to a single FHIR resource (JSON or XML, by extension) validated
+    once at startup, after DEFAULT_IG (and its dependencies) finish loading,
+    as a warm-up/smoke test of that specific engine+IG combination -- see
+    `ValidatorEngine.validate_initial_load_resource()`. Relative paths are
+    resolved against the process's current working directory. A missing
+    file, or an empty `default_ig`, is a no-op, not an error -- this is
+    optional and never blocks startup."""
+    validate_initial_load_resource_on_startup: bool = True
+    """Set to False to skip the startup warm-up validation above."""
+
     ci_build_repos: str = ""
     """Comma-separated `<packageId>#<version>=<Org-or-User>/<Repo-Name>`
     entries (e.g. "hl7.fhir.us.vdor#0.1.1-cibuild=HL7/fhir-vdor"). Used as

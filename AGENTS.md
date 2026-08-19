@@ -361,7 +361,36 @@ subprocess-lifecycle tests never touch this machine's real `~/.fhir/packages`
 or the repo's own `packages/` folder, or make an unexpected `/loadIG` call
 using the real `PACKAGES` default. If you add a new test that calls
 `engine.start()` directly (bypassing this helper), carry that same isolation
-forward -- don't let a test's default settings resolve to real paths.
+forward -- don't let a test's default settings resolve to real paths. It
+also defaults `validate_initial_load_resource_on_startup=False` (see
+"Startup warm-up validation" below) for the same reason -- the real default
+resolves `initial_load_resource_path` against the repo's own
+`initial_load_resource.json` and calls `validate_resource()`, which isn't
+meaningful against the trivial `sh`/`sleep` stand-in commands these tests
+spawn.
+
+## Startup warm-up validation
+
+After `default_ig` (and its dependencies) finish loading,
+`ValidatorEngine.validate_initial_load_resource()` validates a single
+sample resource -- `INITIAL_LOAD_RESOURCE_PATH` (default:
+`initial_load_resource.json`, a resource checked into the repo root) --
+against the now-fully-loaded engine, and logs the outcome (issue count, or
+the upstream `OperationOutcome` body on an HTTP error). This is purely
+diagnostic: it exercises the full validate path once at startup so a
+`default_ig`/sample-resource mismatch (e.g. a profile the IG doesn't
+actually define) shows up in the logs immediately rather than on the first
+real request, but it never raises or blocks startup regardless of the
+outcome.
+
+It's skipped entirely (a no-op, not an error) if `default_ig` is empty, the
+configured `INITIAL_LOAD_RESOURCE_PATH` doesn't exist, or
+`VALIDATE_INITIAL_LOAD_RESOURCE_ON_STARTUP=false`. The resource's own
+representation (JSON/XML) is inferred from the path's file extension
+(`.xml` -> XML, anything else -> JSON) and sent with no explicit `profile`
+query params -- it relies entirely on the resource's own `meta.profile`
+entries (which is what actually ties it to `default_ig`), the same as a
+real `$validate` request that omits the `profile` parameter.
 
 ## Environment variables (`app/config.py`)
 
@@ -380,6 +409,8 @@ forward -- don't let a test's default settings resolve to real paths.
 | `LOAD_CACHED_PACKAGES_ON_STARTUP` | `true` | load every package found in `$HOME/.fhir/packages` into the running engine at startup, see "Loading cached packages into the engine at startup" above; best-effort, set `false` for purely lazy/on-demand loading |
 | `PACKAGES` | see `app/config.py` | comma-separated `<id>#<version>` list; canonical source is `.env` (see `.env.example`), not this Python-level fallback -- returned by `GET /fhir/$packages` *and* fetched/cached/loaded into the engine at startup, see "Configuring PACKAGES and DEFAULT_IG via .env" above |
 | `DEFAULT_IG` | `` (empty) | primary `<id>#<version>` IG for this deployment; loaded (with dependencies auto-resolved) alongside `PACKAGES` at startup, see above; canonical source is also `.env` |
+| `INITIAL_LOAD_RESOURCE_PATH` | `initial_load_resource.json` | path to a sample resource validated once at startup against `DEFAULT_IG`, see "Startup warm-up validation" above; missing file is a no-op |
+| `VALIDATE_INITIAL_LOAD_RESOURCE_ON_STARTUP` | `true` | set `false` to skip the startup warm-up validation above |
 | `CI_BUILD_REPOS` | `` (empty) | comma-separated `<id>#<version>=<Org-or-User>/<Repo-Name>` mapping used as tier 2 of the `PACKAGES`/`DEFAULT_IG` fallback chain, see "Configuring PACKAGES and DEFAULT_IG via .env" above; canonical source is also `.env` |
 | `CORS_ALLOW_ORIGINS` | `*` | comma-separated list of allowed CORS origins; also makes every route respond to CORS preflight `OPTIONS` requests via Starlette's `CORSMiddleware` (see `app/main.py`) |
 | `CUSTOM_PATH` | `` (empty) | external path prefix this service is mounted under by a reverse proxy (e.g. `/my-service`), applied via FastAPI's `root_path` (https://fastapi.tiangolo.com/advanced/behind-a-proxy/) rather than baked into any route's registered path -- so it works whether the proxy strips the prefix before forwarding (container only ever sees `/fhir/docs`) or forwards the full path unstripped (container sees `/my-service/fhir/docs` -- Starlette's routing strips a leading `root_path` match off the incoming path itself, see `get_route_path`), and either way it's purely informational for URL *generation*: it makes the docs/redoc HTML's self-referencing `openapi_url` (fixing "Failed to load API definition"/"Fetch error Not Found /fhir/openapi.json" in Swagger UI) and the OpenAPI schema's `servers` entry (fixing "Try it out"/"Execute", and any client generated from the spec, for the actual operations -- `/fhir/$validate` etc, which like every other route are never prefixed at the route level) come out correctly prefixed. Leading/trailing slashes are normalized; empty (default) leaves both alone. |

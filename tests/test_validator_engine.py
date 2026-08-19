@@ -30,6 +30,7 @@ def _engine_with_command(cmd: list[str], **settings_kwargs) -> ValidatorEngine:
     settings_kwargs.setdefault("packages_dir", "/nonexistent-packages-dir-for-tests")
     settings_kwargs.setdefault("packages", "")
     settings_kwargs.setdefault("default_ig", "")
+    settings_kwargs.setdefault("validate_initial_load_resource_on_startup", False)
     engine = ValidatorEngine(Settings(**settings_kwargs))
     engine._build_command = lambda: cmd
     return engine
@@ -544,5 +545,198 @@ async def test_start_preloads_only_startup_igs_from_packages_dir(tmp_path, monke
     # anymore).
     assert (cache_dir / "hl7.fhir.us.startup-local#1.0.0-cibuild" / "package").is_dir()
     assert not (cache_dir / "hl7.fhir.us.not-referenced#1.0.0-cibuild").exists()
+
+    await engine.stop()
+
+
+# --- validate_initial_load_resource() (startup warm-up) ---
+
+
+def _make_resource_file(path: Path, content: str = '{"resourceType": "Patient"}') -> None:
+    path.write_text(content)
+
+
+async def test_validate_initial_load_resource_noop_when_default_ig_empty(tmp_path):
+    resource_path = tmp_path / "initial_load_resource.json"
+    _make_resource_file(resource_path)
+
+    engine = ValidatorEngine(Settings(default_ig="", initial_load_resource_path=str(resource_path)))
+    calls: list[dict] = []
+
+    async def fake_validate_resource(**kwargs):
+        calls.append(kwargs)
+        raise AssertionError("should not be called")
+
+    engine.validate_resource = fake_validate_resource
+
+    await engine.validate_initial_load_resource()
+
+    assert calls == []
+
+
+async def test_validate_initial_load_resource_noop_when_disabled(tmp_path):
+    resource_path = tmp_path / "initial_load_resource.json"
+    _make_resource_file(resource_path)
+
+    engine = ValidatorEngine(
+        Settings(
+            default_ig="pkg.default#1.0.0",
+            initial_load_resource_path=str(resource_path),
+            validate_initial_load_resource_on_startup=False,
+        )
+    )
+
+    async def fake_validate_resource(**kwargs):
+        raise AssertionError("should not be called")
+
+    engine.validate_resource = fake_validate_resource
+
+    await engine.validate_initial_load_resource()
+
+
+async def test_validate_initial_load_resource_noop_when_file_missing(tmp_path):
+    engine = ValidatorEngine(
+        Settings(
+            default_ig="pkg.default#1.0.0",
+            initial_load_resource_path=str(tmp_path / "does-not-exist.json"),
+        )
+    )
+
+    async def fake_validate_resource(**kwargs):
+        raise AssertionError("should not be called")
+
+    engine.validate_resource = fake_validate_resource
+
+    await engine.validate_initial_load_resource()
+
+
+async def test_validate_initial_load_resource_validates_json_file(tmp_path):
+    resource_path = tmp_path / "initial_load_resource.json"
+    _make_resource_file(resource_path, '{"resourceType": "Patient", "id": "abc"}')
+
+    engine = ValidatorEngine(
+        Settings(default_ig="pkg.default#1.0.0", initial_load_resource_path=str(resource_path))
+    )
+    calls: list[dict] = []
+
+    async def fake_validate_resource(**kwargs):
+        calls.append(kwargs)
+        return httpx.Response(
+            200,
+            content=b'{"resourceType":"OperationOutcome","issue":[]}',
+            headers={"content-type": "application/fhir+json"},
+        )
+
+    engine.validate_resource = fake_validate_resource
+
+    await engine.validate_initial_load_resource()
+
+    assert len(calls) == 1
+    call = calls[0]
+    assert call["content"] == resource_path.read_bytes()
+    assert call["content_type"] == "application/fhir+json"
+    assert call["profiles"] == []
+
+
+async def test_validate_initial_load_resource_detects_xml_by_extension(tmp_path):
+    resource_path = tmp_path / "initial_load_resource.xml"
+    _make_resource_file(resource_path, '<Patient xmlns="http://hl7.org/fhir"></Patient>')
+
+    engine = ValidatorEngine(
+        Settings(default_ig="pkg.default#1.0.0", initial_load_resource_path=str(resource_path))
+    )
+    calls: list[dict] = []
+
+    async def fake_validate_resource(**kwargs):
+        calls.append(kwargs)
+        return httpx.Response(
+            200,
+            content=b'{"resourceType":"OperationOutcome","issue":[]}',
+            headers={"content-type": "application/fhir+json"},
+        )
+
+    engine.validate_resource = fake_validate_resource
+
+    await engine.validate_initial_load_resource()
+
+    assert calls[0]["content_type"] == "application/fhir+xml"
+
+
+async def test_validate_initial_load_resource_does_not_raise_on_error_response(tmp_path):
+    resource_path = tmp_path / "initial_load_resource.json"
+    _make_resource_file(resource_path)
+
+    engine = ValidatorEngine(
+        Settings(default_ig="pkg.default#1.0.0", initial_load_resource_path=str(resource_path))
+    )
+
+    async def fake_validate_resource(**kwargs):
+        return httpx.Response(
+            500,
+            content=b'{"resourceType":"OperationOutcome","issue":[{"severity":"error"}]}',
+            headers={"content-type": "application/fhir+json"},
+        )
+
+    engine.validate_resource = fake_validate_resource
+
+    # Must not raise, even though the upstream response is an error.
+    await engine.validate_initial_load_resource()
+
+
+async def test_validate_initial_load_resource_does_not_raise_on_connection_error(tmp_path):
+    resource_path = tmp_path / "initial_load_resource.json"
+    _make_resource_file(resource_path)
+
+    engine = ValidatorEngine(
+        Settings(default_ig="pkg.default#1.0.0", initial_load_resource_path=str(resource_path))
+    )
+
+    async def fake_validate_resource(**kwargs):
+        raise httpx.ConnectError("connection refused")
+
+    engine.validate_resource = fake_validate_resource
+
+    # Must not raise, even though the engine is unreachable.
+    await engine.validate_initial_load_resource()
+
+
+async def test_start_calls_validate_initial_load_resource(tmp_path):
+    resource_path = tmp_path / "initial_load_resource.json"
+    _make_resource_file(resource_path)
+
+    engine = _engine_with_command(
+        ["sh", "-c", f"echo '{READY_LINE}'; sleep 5"],
+        validator_startup_timeout_seconds=10,
+        default_ig="pkg.default#1.0.0",
+        initial_load_resource_path=str(resource_path),
+        validate_initial_load_resource_on_startup=True,
+    )
+    calls: list[str] = []
+    load_ig_post = _fake_post(calls)
+
+    async def post(url, json=None, **kwargs):
+        if url == "/loadIG":
+            return await load_ig_post(url, json=json, **kwargs)
+        return httpx.Response(
+            200,
+            content=b'{"resourceType":"OperationOutcome","issue":[]}',
+            headers={"content-type": "application/fhir+json"},
+        )
+
+    engine._client.post = post
+
+    validated: list[dict] = []
+    original = engine.validate_resource
+
+    async def spy_validate_resource(**kwargs):
+        validated.append(kwargs)
+        return await original(**kwargs)
+
+    engine.validate_resource = spy_validate_resource
+
+    await engine.start()
+
+    assert len(validated) == 1
+    assert calls == ["pkg.default#1.0.0"]
 
     await engine.stop()
