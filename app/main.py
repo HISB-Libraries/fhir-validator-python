@@ -95,8 +95,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "architecture and request contract writeup."
         ),
         lifespan=lifespan,
-        docs_url=f"{custom_path}/fhir/docs",
-        redoc_url=f"{custom_path}/fhir/redoc",
+        docs_url=f"/fhir/docs",
+        redoc_url=f"/fhir/redoc",
         openapi_url=f"{custom_path}/fhir/openapi.json",
         openapi_tags=[
             {
