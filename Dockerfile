@@ -19,6 +19,10 @@ ENV VALIDATOR_JAR_PATH=/opt/validator/validator_cli.jar
 WORKDIR /app
 COPY pyproject.toml ./
 COPY app ./app
+# Sample resource used for the startup warm-up validation (see
+# ValidatorEngine.validate_initial_load_resource()); resolved relative to
+# this WORKDIR by the default INITIAL_LOAD_RESOURCE_PATH.
+COPY initial_load_resource.json ./
 # Pre-extracted IG packages (see app/package_cache.py) -- the last-resort
 # fallback tier for PACKAGES/DEFAULT_IG entries (after the FHIR package
 # registry and build.fhir.org), and preloaded proactively for any
