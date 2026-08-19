@@ -94,8 +94,15 @@ def parse_validate_parameters_xml(xml_bytes: bytes, default_format: str) -> Vali
             resource_elem = _child(parameter, "resource")
             if resource_elem is not None and len(resource_elem) > 0:
                 # parameter.resource holds the actual resource inline, e.g.
-                # <resource><Patient>...</Patient></resource>.
-                resource_content = ET.tostring(resource_elem[0], encoding="utf-8")
+                # <resource><Patient>...</Patient></resource>. Pretty-print
+                # (rather than ElementTree.tostring's default single-line
+                # output) so the validator engine's OperationOutcome issues
+                # carry meaningful line numbers -- a minified resource puts
+                # every issue on "line 1", which is useless for locating the
+                # actual problem in the original resource.
+                inline_resource = resource_elem[0]
+                ET.indent(inline_resource)
+                resource_content = ET.tostring(inline_resource, encoding="utf-8")
                 resource_is_embedded = True
             else:
                 value_string_elem = _child(parameter, "valueString")

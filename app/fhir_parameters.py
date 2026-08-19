@@ -117,7 +117,12 @@ def parse_validate_parameters(payload: dict, default_format: str) -> ValidateReq
                 declared_format = value
         elif name == "resource":
             if "resource" in entry and entry["resource"] is not None:
-                resource_content = json.dumps(entry["resource"]).encode("utf-8")
+                # Pretty-print (rather than json.dumps' default single-line
+                # minified output) so the validator engine's OperationOutcome
+                # issues carry meaningful line numbers -- a minified resource
+                # puts every issue on "line 1", which is useless for locating
+                # the actual problem in the original resource.
+                resource_content = json.dumps(entry["resource"], indent=2).encode("utf-8")
                 resource_is_embedded = True
             elif "valueString" in entry and entry["valueString"] is not None:
                 resource_content = entry["valueString"].encode("utf-8")
