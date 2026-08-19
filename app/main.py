@@ -95,20 +95,31 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "architecture and request contract writeup."
         ),
         lifespan=lifespan,
-        docs_url=f"{custom_path}/fhir/docs",
-        redoc_url=f"{custom_path}/fhir/redoc",
-        openapi_url=f"{custom_path}/fhir/openapi.json",
-        # Without this, the generated OpenAPI document has no "servers" entry,
-        # so Swagger UI's "Try it out"/"Execute" (and any other tooling that
-        # treats the spec's `paths` as directly callable) resolves operations
-        # like `/fhir/$validate` relative to the current origin -- silently
-        # dropping `custom_path` even though the docs/redoc/openapi routes
-        # above already carry it. Declaring it here as a server the actual
-        # endpoints are served under fixes that, independently of the
-        # docs_url/openapi_url path-prefixing above (`servers` only affects
-        # `openapi()`'s schema output, not route registration or docs/redoc's
-        # own openapi_url self-reference -- so this can't double up with it).
-        servers=[{"url": custom_path}] if custom_path else None,
+        # docs_url/redoc_url/openapi_url are deliberately left unprefixed --
+        # they, like every other route in this app, are registered exactly as
+        # `/fhir/...`. `custom_path` is applied below via FastAPI/Starlette's
+        # `root_path` instead of by baking it into these route paths, because
+        # this service sits behind a reverse proxy that strips its mount
+        # prefix before forwarding (e.g. nginx `location /my-prefix/ {
+        # proxy_pass http://backend/; }`) -- the container itself only ever
+        # sees the unprefixed path, the same way it already does for
+        # `/fhir/$validate` etc (which have never been, and still aren't,
+        # prefixed). `root_path` is purely informational: per
+        # https://fastapi.tiangolo.com/advanced/behind-a-proxy/, it does not
+        # change route matching, it only tells FastAPI what external prefix
+        # to prepend when generating URLs -- specifically here, the
+        # self-referencing `openapi_url` embedded in the served docs/redoc
+        # HTML (otherwise it fetches `/fhir/openapi.json`, missing the
+        # prefix, which is exactly the "Failed to load API definition" /
+        # "Fetch error Not Found /fhir/openapi.json" Swagger UI error this
+        # fixes), and the OpenAPI schema's `servers` entry (so "Try it
+        # out"/"Execute", and any client generated from the spec, also call
+        # `/fhir/$validate` etc under that same prefix instead of relative to
+        # the origin root).
+        docs_url="/fhir/docs",
+        redoc_url="/fhir/redoc",
+        openapi_url="/fhir/openapi.json",
+        root_path=custom_path,
         openapi_tags=[
             {
                 "name": "Validation",
