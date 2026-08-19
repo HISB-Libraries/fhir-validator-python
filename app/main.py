@@ -84,6 +84,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings()
     logging.basicConfig(level=settings.log_level)
 
+    custom_path = settings.custom_path_normalized
+
     app = FastAPI(
         title="FHIR Validation Service",
         description=(
@@ -93,9 +95,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "architecture and request contract writeup."
         ),
         lifespan=lifespan,
-        docs_url="/fhir/docs",
-        redoc_url="/fhir/redoc",
-        openapi_url="/fhir/openapi.json",
+        docs_url=f"{custom_path}/fhir/docs",
+        redoc_url=f"{custom_path}/fhir/redoc",
+        openapi_url=f"{custom_path}/fhir/openapi.json",
         openapi_tags=[
             {
                 "name": "Validation",

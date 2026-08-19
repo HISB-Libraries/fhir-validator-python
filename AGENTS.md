@@ -382,6 +382,7 @@ forward -- don't let a test's default settings resolve to real paths.
 | `DEFAULT_IG` | `` (empty) | primary `<id>#<version>` IG for this deployment; loaded (with dependencies auto-resolved) alongside `PACKAGES` at startup, see above; canonical source is also `.env` |
 | `CI_BUILD_REPOS` | `` (empty) | comma-separated `<id>#<version>=<Org-or-User>/<Repo-Name>` mapping used as tier 2 of the `PACKAGES`/`DEFAULT_IG` fallback chain, see "Configuring PACKAGES and DEFAULT_IG via .env" above; canonical source is also `.env` |
 | `CORS_ALLOW_ORIGINS` | `*` | comma-separated list of allowed CORS origins; also makes every route respond to CORS preflight `OPTIONS` requests via Starlette's `CORSMiddleware` (see `app/main.py`) |
+| `CUSTOM_PATH` | `` (empty) | optional path prefix prepended to the API docs URLs (`/fhir/docs`, `/fhir/redoc`, `/fhir/openapi.json`), e.g. for deployments behind a reverse proxy under a non-root path; leading/trailing slashes are normalized, empty leaves the docs URLs unprefixed |
 
 The public FastAPI port is set via the ASGI server invocation (`uvicorn
 app.main:app --port ...`), not an env var.

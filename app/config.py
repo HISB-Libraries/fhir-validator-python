@@ -134,6 +134,17 @@ class Settings(BaseSettings):
 
     log_level: str = "INFO"
 
+    custom_path: str = ""
+    """Optional path prefix (e.g. "/fhir-validator") prepended to the API docs
+    URLs (`/docs`, `/redoc`, `/openapi.json`) -- useful when this service is
+    deployed behind a reverse proxy under a non-root path. Leading/trailing
+    slashes are normalized. Empty (default) leaves the docs URLs unprefixed."""
+
     @property
     def cors_allow_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_allow_origins.split(",") if origin.strip()]
+
+    @property
+    def custom_path_normalized(self) -> str:
+        stripped = self.custom_path.strip().strip("/")
+        return f"/{stripped}" if stripped else ""
