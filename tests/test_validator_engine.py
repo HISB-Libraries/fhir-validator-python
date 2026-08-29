@@ -36,6 +36,34 @@ def _engine_with_command(cmd: list[str], **settings_kwargs) -> ValidatorEngine:
     return engine
 
 
+def _bare_engine(**settings_kwargs) -> ValidatorEngine:
+    settings_kwargs.setdefault("load_cached_packages_on_startup", False)
+    settings_kwargs.setdefault("packages_dir", "/nonexistent-packages-dir-for-tests")
+    settings_kwargs.setdefault("packages", "")
+    settings_kwargs.setdefault("default_ig", "")
+    settings_kwargs.setdefault("validate_initial_load_resource_on_startup", False)
+    return ValidatorEngine(Settings(**settings_kwargs))
+
+
+def test_build_command_defaults_to_us_snomed_edition():
+    engine = _bare_engine()
+    cmd = engine._build_command()
+    assert "-sct" in cmd
+    assert cmd[cmd.index("-sct") + 1] == "us"
+
+
+def test_build_command_respects_configured_snomed_edition():
+    engine = _bare_engine(snomed_edition="uk")
+    cmd = engine._build_command()
+    assert cmd[cmd.index("-sct") + 1] == "uk"
+
+
+def test_build_command_omits_sct_flag_when_snomed_edition_unset():
+    engine = _bare_engine(snomed_edition=None)
+    cmd = engine._build_command()
+    assert "-sct" not in cmd
+
+
 async def test_start_raises_fast_when_process_exits_immediately():
     engine = _engine_with_command(
         ["sh", "-c", "echo 'Error: Unable to access jarfile bogus.jar'; exit 1"],

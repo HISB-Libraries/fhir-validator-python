@@ -71,6 +71,8 @@ class ValidatorEngine:
             cmd += ["-ig", ig]
         if self._settings.terminology_server:
             cmd += ["-tx", self._settings.terminology_server]
+        if self._settings.snomed_edition:
+            cmd += ["-sct", self._settings.snomed_edition]
         cmd += self._settings.validator_extra_args_list
         return cmd
 

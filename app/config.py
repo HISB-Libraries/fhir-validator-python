@@ -33,6 +33,11 @@ class Settings(BaseSettings):
     split via `startup_igs_list` for a simpler operator experience."""
     terminology_server: str | None = None
     """Passed as `-tx <url>`. Leave unset to use the validator's default (tx.fhir.org)."""
+    snomed_edition: str | None = "us"
+    """Passed as `-sct <edition>`. Valid choices (per the validator's own `-sct` option):
+    intl | us | uk | au | nl | ca | se | dk | es. Defaults to "us" so SNOMED CT valueset/
+    codesystem validation resolves against the US edition rather than the validator's own
+    default (International edition) -- set to None/empty to fall back to that default."""
     validator_extra_args: str = ""
     """Comma-separated additional raw CLI args appended verbatim to the `server` subcommand."""
     packages_dir: str = "packages"

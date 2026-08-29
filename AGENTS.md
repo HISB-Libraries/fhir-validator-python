@@ -402,6 +402,7 @@ real `$validate` request that omits the `profile` parameter.
 | `FHIR_VERSION` | `4.0` | passed as `-version` when the engine starts |
 | `STARTUP_IGS` | `` (empty) | **comma-separated**, e.g. `hl7.fhir.us.core#5.0.1,hl7.fhir.uv.ips` — NOT JSON, despite pydantic-settings' usual list-from-env convention (see comment in config.py for why) |
 | `TERMINOLOGY_SERVER` | unset (-> tx.fhir.org) | passed as `-tx <url>` |
+| `SNOMED_EDITION` | `us` | passed as `-sct <edition>`; valid choices per the validator's own `-sct` option: `intl \| us \| uk \| au \| nl \| ca \| se \| dk \| es`. Unset/empty falls back to the validator's own default (`intl`) |
 | `VALIDATOR_EXTRA_ARGS` | `` (empty) | comma-separated raw CLI args appended to `server ...` |
 | `VALIDATOR_STARTUP_TIMEOUT_SECONDS` | `300` | cold start with big IGs can take minutes |
 | `VALIDATOR_REQUEST_TIMEOUT_SECONDS` | `120` | per-request httpx timeout to the engine |
