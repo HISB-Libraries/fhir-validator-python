@@ -14,7 +14,7 @@
   "timestamp": "2026-08-19T12:14:24.810+00:00",
   "entry": [
     {
-      "fullUrl": "Composition/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-MDIAndEDRS-Composition",
+      "fullUrl": "http://www.example.org/fhir/Composition/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-MDIAndEDRS-Composition",
       "resource": {
         "resourceType": "Composition",
         "id": "MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-MDIAndEDRS-Composition",
@@ -187,7 +187,7 @@
             },
             "text": {
               "status": "empty",
-              "div": "<div smlnx=\"http://www.w3.org/1999/xhtml\"><p>unavailable</p></div>"
+              "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p>unavailable</p></div>"
             },
             "emptyReason": {
               "coding": [
@@ -221,7 +221,7 @@
       }
     },
     {
-      "fullUrl": "Patient/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Decedent",
+      "fullUrl": "http://www.example.org/fhir/Patient/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Decedent",
       "resource": {
         "resourceType": "Patient",
         "id": "MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Decedent",
@@ -301,7 +301,7 @@
             "district": "Fulton",
             "state": "GA",
             "postalCode": "90909",
-            "country": "USA"
+            "country": "US"
           }
         ],
         "maritalStatus": {
@@ -315,7 +315,7 @@
       }
     },
     {
-      "fullUrl": "Practitioner/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Primary-Practitioner",
+      "fullUrl": "http://www.example.org/fhir/Practitioner/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Primary-Practitioner",
       "resource": {
         "resourceType": "Practitioner",
         "id": "MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Primary-Practitioner",
@@ -333,6 +333,12 @@
             ]
           }
         ],
+        "identifier": [
+          {
+            "system": "urn:mdi:raven",
+            "value": "primary-practitioner"
+          }
+        ],
         "address": [
           {
             "line": [
@@ -347,7 +353,7 @@
       }
     },
     {
-      "fullUrl": "Observation/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-DecedentAge",
+      "fullUrl": "http://www.example.org/fhir/Observation/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-DecedentAge",
       "resource": {
         "resourceType": "Observation",
         "id": "MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-DecedentAge",
@@ -361,8 +367,7 @@
           "coding": [
             {
               "system": "http://loinc.org",
-              "code": "30525-0",
-              "display": "Age"
+              "code": "39016-1"
             }
           ]
         },
@@ -371,12 +376,13 @@
         },
         "valueQuantity": {
           "value": 45,
+          "system": "http://unitsofmeasure.org",
           "code": "a"
         }
       }
     },
     {
-      "fullUrl": "Procedure/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Certification",
+      "fullUrl": "http://www.example.org/fhir/Procedure/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Certification",
       "resource": {
         "resourceType": "Procedure",
         "id": "MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Certification",
@@ -414,7 +420,7 @@
                 {
                   "system": "http://snomed.info/sct",
                   "code": "455381000124109",
-                  "display": "Medical Examiner/Coroner"
+                  "display": "Death certification by medical examiner or coroner (procedure)"
                 }
               ]
             },
@@ -426,7 +432,7 @@
       }
     },
     {
-      "fullUrl": "Observation/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-DeathDate",
+      "fullUrl": "http://www.example.org/fhir/Observation/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-DeathDate",
       "resource": {
         "resourceType": "Observation",
         "id": "MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-DeathDate",
@@ -495,7 +501,7 @@
       }
     },
     {
-      "fullUrl": "Location/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Death-Location",
+      "fullUrl": "http://www.example.org/fhir/Location/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Death-Location",
       "resource": {
         "resourceType": "Location",
         "id": "MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Death-Location",
@@ -522,13 +528,13 @@
           ],
           "city": "Atlanta",
           "state": "GA",
-          "postalCode": "GA",
-          "country": "90909"
+          "postalCode": "90909",
+          "country": "US"
         }
       }
     },
     {
-      "fullUrl": "Observation/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Tobacco",
+      "fullUrl": "http://www.example.org/fhir/Observation/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Tobacco",
       "resource": {
         "resourceType": "Observation",
         "id": "MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Tobacco",
@@ -537,7 +543,7 @@
             "http://hl7.org/fhir/us/vrdr/StructureDefinition/vrdr-tobacco-use-contributed-to-death"
           ]
         },
-        "status": "preliminary",
+        "status": "final",
         "code": {
           "coding": [
             {
@@ -562,7 +568,7 @@
       }
     },
     {
-      "fullUrl": "Observation/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Pregnancy",
+      "fullUrl": "http://www.example.org/fhir/Observation/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Pregnancy",
       "resource": {
         "resourceType": "Observation",
         "id": "MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Pregnancy",
@@ -596,7 +602,7 @@
       }
     },
     {
-      "fullUrl": "Location/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Injury-Location",
+      "fullUrl": "http://www.example.org/fhir/Location/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Injury-Location",
       "resource": {
         "resourceType": "Location",
         "id": "MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Injury-Location",
@@ -605,19 +611,31 @@
             "http://hl7.org/fhir/us/vrdr/StructureDefinition/vrdr-injury-location"
           ]
         },
+        "name": "Injury Location",
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/us/vrdr/CodeSystem/vrdr-location-type-cs",
+                "code": "injury",
+                "display": "Injury Location"
+              }
+            ]
+          }
+        ],
         "address": {
           "line": [
             "3487 Lilac Lane"
           ],
           "city": "Mount Vernon",
           "state": "GA",
-          "postalCode": "GA",
-          "country": "30445"
+          "postalCode": "30445",
+          "country": "US"
         }
       }
     },
     {
-      "fullUrl": "Observation/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-CauseOfDeathPart1-0",
+      "fullUrl": "http://www.example.org/fhir/Observation/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-CauseOfDeathPart1-0",
       "resource": {
         "resourceType": "Observation",
         "id": "MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-CauseOfDeathPart1-0",
@@ -657,12 +675,23 @@
               ]
             },
             "valueInteger": 1
+          },
+          {
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "69440-6"
+                }
+              ]
+            },
+            "valueString": "Pending"
           }
         ]
       }
     },
     {
-      "fullUrl": "Observation/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-MannerOfDeath",
+      "fullUrl": "http://www.example.org/fhir/Observation/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-MannerOfDeath",
       "resource": {
         "resourceType": "Observation",
         "id": "MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-MannerOfDeath",
@@ -701,7 +730,7 @@
       }
     },
     {
-      "fullUrl": "Observation/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-InjuryIncident",
+      "fullUrl": "http://www.example.org/fhir/Observation/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-InjuryIncident",
       "resource": {
         "resourceType": "Observation",
         "id": "MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-InjuryIncident",
@@ -754,13 +783,13 @@
       }
     },
     {
-      "fullUrl": "Observation/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Autopsy",
+      "fullUrl": "http://www.example.org/fhir/Observation/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Autopsy",
       "resource": {
         "resourceType": "Observation",
         "id": "MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Autopsy",
         "meta": {
           "profile": [
-            "http://hl7.org/fhir/us/vr-common-library/StructureDefinition/Observation-autopsy-performed-indicator-vr"
+            "http://hl7.org/fhir/us/vrdr/StructureDefinition/vrdr-autopsy-performed-indicator"
           ]
         },
         "status": "final",
@@ -815,7 +844,7 @@
       }
     },
     {
-      "fullUrl": "Location/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Autopsy-Location",
+      "fullUrl": "http://www.example.org/fhir/Location/MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Autopsy-Location",
       "resource": {
         "resourceType": "Location",
         "id": "MDI-DEV-GOLDENSET-HanSolo-MDIEDRS-1-Autopsy-Location",
