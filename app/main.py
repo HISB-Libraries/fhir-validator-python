@@ -4,7 +4,8 @@ Endpoints:
   - POST /fhir/$validate  (base = hostname/fhir, per AGENTS.md)
   - POST /fhir/$convert   (JSON<->XML resource format conversion)
   - GET  /fhir/$packages  (advertises the `PACKAGES` env var, see app/config.py)
-  - GET  /healthz
+  - GET  /fhir/$health    (liveness/readiness check)
+  - GET  /healthz         (legacy liveness check)
 
 Startup pattern
 ----------------
@@ -16,6 +17,7 @@ and tests can reach it without a global singleton.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 from contextlib import asynccontextmanager
@@ -72,11 +74,30 @@ async def lifespan(app: FastAPI):
     settings: Settings = app.state.settings
     engine = ValidatorEngine(settings)
     app.state.validator_engine = engine
+    startup_task: asyncio.Task[None] | None = None
     if settings.auto_start_validator:
-        await engine.start()
+        # Do not hold the ASGI lifespan open while the validator downloads and
+        # loads packages. The service can answer its health endpoint during
+        # that preparation window, while middleware returns an OperationOutcome
+        # for every other API request.
+        async def start_validator() -> None:
+            try:
+                await engine.start()
+            except Exception:
+                logger.exception("Validator engine failed during startup")
+
+        engine.mark_preparing()
+        startup_task = asyncio.create_task(start_validator())
     try:
         yield
     finally:
+        if startup_task is not None and not startup_task.done():
+            startup_task.cancel()
+        if startup_task is not None:
+            try:
+                await startup_task
+            except asyncio.CancelledError:
+                pass
         await engine.stop()
 
 
@@ -138,6 +159,28 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.state.settings = settings
 
+    @app.middleware("http")
+    async def reject_requests_during_preparation(request: Request, call_next) -> Response:
+        path = request.scope.get("path", "").rstrip("/")
+        if path.endswith("/fhir/$health") or path.endswith("/healthz"):
+            return await call_next(request)
+
+        engine = getattr(request.app.state, "validator_engine", None)
+        if engine is not None and getattr(engine, "is_preparing", False):
+            request_is_xml = is_xml_content_type(request.headers.get("content-type", ""))
+            default_format = "application/fhir+xml" if request_is_xml else "application/fhir+json"
+            response_format = resolve_accept_format(
+                request.headers.get("accept", ""), default_format
+            )
+            return _outcome_response(
+                503,
+                "error",
+                "transient",
+                "Service is in preparation. Please try again later.",
+                response_format,
+            )
+        return await call_next(request)
+
     # Enables CORS preflight `OPTIONS` handling on every route (Starlette's
     # CORSMiddleware intercepts `OPTIONS` requests carrying an
     # `Access-Control-Request-Method` header before they reach any endpoint,
@@ -158,6 +201,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def healthz(request: Request) -> dict:
         engine: ValidatorEngine = request.app.state.validator_engine
         return await engine.health()
+
+    @app.get(
+        "/fhir/$health",
+        tags=["Health"],
+        summary="Liveness/readiness check",
+        description=(
+            "Reports whether the validator service is ready. During startup, "
+            "the response status is `preparation`; poll this endpoint until "
+            "it becomes `ready`."
+        ),
+    )
+    async def fhir_health(request: Request) -> dict:
+        engine: ValidatorEngine = request.app.state.validator_engine
+        return await engine.preparation_health()
 
     @app.get(
         "/fhir/$packages",

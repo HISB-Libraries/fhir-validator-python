@@ -48,6 +48,9 @@ class ValidatorEngine:
         self._startup_log: list[str] = []
         self._loaded_igs: set[str] = set()
         self._ig_lock = asyncio.Lock()
+        # The subprocess can be alive while configured packages and the
+        # optional startup validation are still being prepared.
+        self._startup_state = "not_started"
         self._client = httpx.AsyncClient(
             base_url=f"http://{settings.validator_host}:{settings.validator_port}",
             timeout=settings.validator_request_timeout_seconds,
@@ -56,6 +59,19 @@ class ValidatorEngine:
     @property
     def is_running(self) -> bool:
         return self._process is not None and self._process.returncode is None
+
+    @property
+    def is_preparing(self) -> bool:
+        return self._startup_state == "preparation"
+
+    @property
+    def is_ready(self) -> bool:
+        return self._startup_state == "ready" and self.is_running
+
+    def mark_preparing(self) -> None:
+        """Mark startup as pending before the asynchronous start task runs."""
+        if not self.is_ready:
+            self._startup_state = "preparation"
 
     def _build_command(self) -> list[str]:
         cmd = [
@@ -77,6 +93,19 @@ class ValidatorEngine:
         return cmd
 
     async def start(self) -> None:
+        """Start the validator and finish all startup preparation."""
+        if self.is_running:
+            return
+
+        self._startup_state = "preparation"
+        try:
+            await self._start()
+        except BaseException:
+            self._startup_state = "failed"
+            raise
+        self._startup_state = "ready"
+
+    async def _start(self) -> None:
         """Launch the validator subprocess and block until it is ready.
 
         Fails fast (rather than waiting out the full startup timeout) if the
@@ -85,9 +114,6 @@ class ValidatorEngine:
         includes the process's own output (which has the real error, such
         as "Unable to access jarfile ...") in the raised exception.
         """
-        if self.is_running:
-            return
-
         # STARTUP_IGS are passed straight to the validator jar as `-ig` args
         # below (see _build_command) -- the jar resolves those itself
         # (cache-first, network-fallback) the instant it starts, with no
@@ -460,3 +486,17 @@ class ValidatorEngine:
             "running": self.is_running,
             "loaded_igs": sorted(self._loaded_igs),
         }
+
+    async def preparation_health(self) -> dict[str, Any]:
+        """Return liveness plus whether startup preparation has completed."""
+        health = await self.health()
+        if self.is_ready:
+            status = "ready"
+            message = "Service is ready."
+        elif self.is_preparing:
+            status = "preparation"
+            message = "Service is in preparation. Please try again later."
+        else:
+            status = "unavailable"
+            message = "Service is unavailable."
+        return {"status": status, "message": message, **health}

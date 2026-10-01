@@ -21,6 +21,7 @@ from app.main import create_app
 @dataclass
 class FakeValidatorEngine:
     is_running: bool = True
+    is_preparing: bool = False
     loaded_igs: list[str] = field(default_factory=list)
     response_status: int = 200
     response_body: bytes = b'{"resourceType":"OperationOutcome","issue":[]}'
@@ -66,6 +67,23 @@ class FakeValidatorEngine:
 
     async def health(self) -> dict:
         return {"running": self.is_running, "loaded_igs": self.loaded_igs}
+
+    async def preparation_health(self) -> dict:
+        if self.is_preparing:
+            status = "preparation"
+            message = "Service is in preparation. Please try again later."
+        elif self.is_running:
+            status = "ready"
+            message = "Service is ready."
+        else:
+            status = "unavailable"
+            message = "Service is unavailable."
+        return {
+            "status": status,
+            "message": message,
+            "running": self.is_running,
+            "loaded_igs": self.loaded_igs,
+        }
 
 
 @pytest.fixture
