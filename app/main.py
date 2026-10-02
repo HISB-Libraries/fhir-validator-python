@@ -4,7 +4,7 @@ Endpoints:
   - POST /fhir/$validate  (base = hostname/fhir, per AGENTS.md)
   - POST /fhir/$convert   (JSON<->XML resource format conversion)
   - GET  /fhir/$packages  (advertises the `PACKAGES` env var, see app/config.py)
-  - GET  /fhir/$health    (liveness/readiness check)
+  - GET  /fhir/health    (liveness/readiness check)
   - GET  /healthz         (legacy liveness check)
 
 Startup pattern
@@ -162,7 +162,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.middleware("http")
     async def reject_requests_during_preparation(request: Request, call_next) -> Response:
         path = request.scope.get("path", "").rstrip("/")
-        if path.endswith("/fhir/$health") or path.endswith("/healthz"):
+        if path.endswith("/fhir/health") or path.endswith("/healthz"):
             return await call_next(request)
 
         engine = getattr(request.app.state, "validator_engine", None)
@@ -197,13 +197,26 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         tags=["Health"],
         summary="Liveness/readiness check",
         description="Reports whether the persistent validator engine subprocess is running.",
+        responses={
+            200: {
+                "description": "Health status of the validator engine.",
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "running": True,
+                            "loaded_igs": ["hl7.fhir.us.core#5.0.1"],
+                        }
+                    }
+                },
+            }
+        },
     )
     async def healthz(request: Request) -> dict:
         engine: ValidatorEngine = request.app.state.validator_engine
         return await engine.health()
 
     @app.get(
-        "/fhir/$health",
+        "/fhir/health",
         tags=["Health"],
         summary="Liveness/readiness check",
         description=(
@@ -211,6 +224,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "the response status is `preparation`; poll this endpoint until "
             "it becomes `ready`."
         ),
+        responses={
+            200: {
+                "description": "Validator service preparation/readiness status.",
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "status": "ready",
+                            "message": "Service is ready.",
+                            "running": True,
+                            "loaded_igs": ["hl7.fhir.us.core#5.0.1"],
+                        }
+                    }
+                },
+            }
+        },
     )
     async def fhir_health(request: Request) -> dict:
         engine: ValidatorEngine = request.app.state.validator_engine

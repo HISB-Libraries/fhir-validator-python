@@ -104,3 +104,55 @@ def test_openapi_schema_declares_custom_path_as_server():
         schema = test_client.get("/fhir/openapi.json").json()
 
     assert schema["servers"] == [{"url": "/my-service"}]
+
+
+def test_healthz_endpoint_has_openapi_response_example():
+    # Verify that GET /healthz exposes a response example in its OpenAPI schema
+    app = create_app(Settings(auto_start_validator=False))
+
+    with TestClient(app) as test_client:
+        schema = test_client.get("/fhir/openapi.json").json()
+
+    # Find the healthz endpoint in the schema
+    paths = schema.get("paths", {})
+    healthz_path = paths.get("/healthz", {})
+    get_operation = healthz_path.get("get", {})
+    responses = get_operation.get("responses", {})
+    response_200 = responses.get("200", {})
+    content = response_200.get("content", {})
+    json_content = content.get("application/json", {})
+
+    # Assert that the response includes an example
+    assert "example" in json_content
+    example = json_content["example"]
+
+    # Assert the example has the expected fields
+    assert "running" in example
+    assert "loaded_igs" in example
+
+
+def test_fhir_health_endpoint_has_openapi_response_example():
+    # Verify that GET /fhir/health exposes a response example in its OpenAPI schema
+    app = create_app(Settings(auto_start_validator=False))
+
+    with TestClient(app) as test_client:
+        schema = test_client.get("/fhir/openapi.json").json()
+
+    # Find the fhir/health endpoint in the schema
+    paths = schema.get("paths", {})
+    health_path = paths.get("/fhir/health", {})
+    get_operation = health_path.get("get", {})
+    responses = get_operation.get("responses", {})
+    response_200 = responses.get("200", {})
+    content = response_200.get("content", {})
+    json_content = content.get("application/json", {})
+
+    # Assert that the response includes an example
+    assert "example" in json_content
+    example = json_content["example"]
+
+    # Assert the example has the expected fields
+    assert "status" in example
+    assert "message" in example
+    assert "running" in example
+    assert "loaded_igs" in example

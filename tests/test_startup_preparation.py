@@ -2,7 +2,7 @@
 
 These tests verify that the service correctly handles the preparation state
 during startup, including:
-- GET /fhir/$health returning preparation and ready states
+- GET /fhir/health returning preparation and ready states
 - Requests to $validate and $convert being rejected during preparation
 - FHIR OperationOutcome format for rejected requests
 - XML response negotiation during preparation
@@ -12,7 +12,7 @@ from tests.conftest import FakeValidatorEngine
 
 VALIDATE_URL = "/fhir/$validate"
 CONVERT_URL = "/fhir/$convert"
-HEALTH_URL = "/fhir/$health"
+HEALTH_URL = "/fhir/health"
 
 
 def _params_with_inline_resource(resource: dict, igs=None, profiles=None) -> dict:
@@ -27,7 +27,7 @@ def _params_with_inline_resource(resource: dict, igs=None, profiles=None) -> dic
 
 
 def test_health_returns_preparation_status(client, fake_engine: FakeValidatorEngine):
-    """GET /fhir/$health should return preparation status when engine is preparing."""
+    """GET /fhir/health should return preparation status when engine is preparing."""
     fake_engine.is_preparing = True
     fake_engine.is_running = False
     fake_engine.loaded_igs = []
@@ -43,7 +43,7 @@ def test_health_returns_preparation_status(client, fake_engine: FakeValidatorEng
 
 
 def test_health_returns_ready_status(client, fake_engine: FakeValidatorEngine):
-    """GET /fhir/$health should return ready status when engine is running."""
+    """GET /fhir/health should return ready status when engine is running."""
     fake_engine.is_preparing = False
     fake_engine.is_running = True
     fake_engine.loaded_igs = ["hl7.fhir.us.core#5.0.1"]
