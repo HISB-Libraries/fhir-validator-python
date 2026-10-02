@@ -44,6 +44,21 @@ into the *already-running* engine via `POST /loadIG` rather than by
 restarting the process, which is what makes IG loading dynamic without
 paying the (multi-second-to-minutes) engine construction cost again.
 
+If a validation or conversion request encounters a transport/protocol failure
+(`ConnectError`, `ReadError`, `WriteError`, `CloseError`, or
+`RemoteProtocolError`), the engine schedules one bounded in-process recovery.
+The failed request is not replayed and retains the existing 502 response. The
+engine enters preparation, drains in-flight engine calls, terminates the stale
+child, recreates its HTTP client, clears the old process's loaded-IG bookkeeping,
+and runs the normal startup/package-loading sequence again. Requests arriving
+while recovery is in progress receive the existing transient 503 response.
+HTTP error responses and timeout exceptions are not recovery triggers: a
+validator-generated 4xx/5xx is a result, while a timeout can represent a slow
+but healthy validation. Recovery attempts are bounded and exponentially backed
+off; if all attempts fail, the engine remains unavailable until an operator or
+the container orchestrator restarts it. `stop()` cancels any recovery task
+during ASGI shutdown.
+
 Full reference for the jar's HTTP server mode (verified against the real
 `validator_cli.jar` during development):
 https://confluence.hl7.org/spaces/FHIR/pages/441520076/Running+the+Validator+as+a+local+HTTP+service
@@ -406,6 +421,11 @@ real `$validate` request that omits the `profile` parameter.
 | `VALIDATOR_EXTRA_ARGS` | `` (empty) | comma-separated raw CLI args appended to `server ...` |
 | `VALIDATOR_STARTUP_TIMEOUT_SECONDS` | `300` | cold start with big IGs can take minutes |
 | `VALIDATOR_REQUEST_TIMEOUT_SECONDS` | `120` | per-request httpx timeout to the engine |
+| `AUTO_RECOVER_VALIDATOR` | `true` | schedule an in-process restart after a transport/protocol failure; the failed request is not replayed |
+| `VALIDATOR_RECOVERY_MAX_ATTEMPTS` | `3` | maximum consecutive restart attempts for one recovery event |
+| `VALIDATOR_RECOVERY_BACKOFF_SECONDS` | `5` | delay before the second recovery attempt; subsequent delays are multiplied by `VALIDATOR_RECOVERY_BACKOFF_MULTIPLIER` |
+| `VALIDATOR_RECOVERY_BACKOFF_MULTIPLIER` | `2` | exponential multiplier for recovery retry delays |
+| `VALIDATOR_RECOVERY_OPERATION_DRAIN_TIMEOUT_SECONDS` | `10` | maximum time to wait for in-flight engine calls before forcing the child restart |
 | `PACKAGES_DIR` | `packages` | dir of pre-extracted packages copied into `$HOME/.fhir/packages` on startup, see "Package cache preloading" above; missing dir is a no-op |
 | `LOAD_CACHED_PACKAGES_ON_STARTUP` | `true` | load every package found in `$HOME/.fhir/packages` into the running engine at startup, see "Loading cached packages into the engine at startup" above; best-effort, set `false` for purely lazy/on-demand loading |
 | `PACKAGES` | see `app/config.py` | comma-separated `<id>#<version>` list; canonical source is `.env` (see `.env.example`), not this Python-level fallback -- returned by `GET /fhir/$packages` *and* fetched/cached/loaded into the engine at startup, see "Configuring PACKAGES and DEFAULT_IG via .env" above |

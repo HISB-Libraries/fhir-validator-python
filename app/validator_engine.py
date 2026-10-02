@@ -16,6 +16,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -33,6 +34,17 @@ logger = logging.getLogger("fhir_validator.engine")
 
 READY_MARKER = "FHIR Validator HTTP Service started"
 
+# A validator-generated HTTP response is a valid result, not evidence that the
+# subprocess needs to be restarted. These are transport/protocol failures
+# where the persistent child process or its HTTP listener may be unavailable.
+RECOVERY_EXCEPTIONS = (
+    httpx.ConnectError,
+    httpx.ReadError,
+    httpx.WriteError,
+    httpx.CloseError,
+    httpx.RemoteProtocolError,
+)
+
 
 class ValidatorEngineError(RuntimeError):
     """Raised when the validator engine process fails to start or respond."""
@@ -48,6 +60,11 @@ class ValidatorEngine:
         self._startup_log: list[str] = []
         self._loaded_igs: set[str] = set()
         self._ig_lock = asyncio.Lock()
+        self._lifecycle_lock = asyncio.Lock()
+        self._operation_condition = asyncio.Condition()
+        self._active_operations = 0
+        self._recovery_task: asyncio.Task[None] | None = None
+        self._stopping = False
         # The subprocess can be alive while configured packages and the
         # optional startup validation are still being prepared.
         self._startup_state = "not_started"
@@ -94,16 +111,20 @@ class ValidatorEngine:
 
     async def start(self) -> None:
         """Start the validator and finish all startup preparation."""
-        if self.is_running:
-            return
+        async with self._lifecycle_lock:
+            if self.is_running:
+                return
 
-        self._startup_state = "preparation"
-        try:
-            await self._start()
-        except BaseException:
-            self._startup_state = "failed"
-            raise
-        self._startup_state = "ready"
+            self._stopping = False
+            self._startup_state = "preparation"
+            self._loaded_igs.clear()
+            self._ensure_client()
+            try:
+                await self._start()
+            except BaseException:
+                self._startup_state = "failed"
+                raise
+            self._startup_state = "ready"
 
     async def _start(self) -> None:
         """Launch the validator subprocess and block until it is ready.
@@ -167,13 +188,13 @@ class ValidatorEngine:
                 except (TimeoutError, asyncio.CancelledError):
                     pass
             log_tail = "\n".join(self._startup_log[-20:]) or "(no output captured)"
-            await self.stop()
+            await self._stop_process()
             raise ValidatorEngineError(
                 f"Validator engine process exited during startup (exit code {returncode}). "
                 f"Last output:\n{log_tail}"
             )
         else:
-            await self.stop()
+            await self._stop_process()
             raise ValidatorEngineError(
                 "Validator engine did not report readiness within "
                 f"{self._settings.validator_startup_timeout_seconds}s"
@@ -206,9 +227,23 @@ class ValidatorEngine:
             if READY_MARKER in text:
                 ready.set()
 
-    async def stop(self) -> None:
+    def _new_client(self) -> httpx.AsyncClient:
+        return httpx.AsyncClient(
+            base_url=f"http://{self._settings.validator_host}:{self._settings.validator_port}",
+            timeout=self._settings.validator_request_timeout_seconds,
+        )
+
+    def _ensure_client(self) -> None:
+        if self._client.is_closed:
+            self._client = self._new_client()
+
+    async def _stop_process(self) -> None:
         if self._log_task is not None:
             self._log_task.cancel()
+            try:
+                await self._log_task
+            except asyncio.CancelledError:
+                pass
             self._log_task = None
         if self._process is not None and self._process.returncode is None:
             self._process.terminate()
@@ -218,24 +253,144 @@ class ValidatorEngine:
                 self._process.kill()
                 await self._process.wait()
         self._process = None
-        await self._client.aclose()
+
+    async def stop(self) -> None:
+        """Stop the subprocess and close the HTTP client.
+
+        Recovery is owned by the engine, so shutdown also cancels a pending
+        recovery task before taking the lifecycle lock. This makes repeated
+        start/stop cycles safe and prevents a recovery from spawning a child
+        after the ASGI application has begun shutting down.
+        """
+        self._stopping = True
+        current = asyncio.current_task()
+        recovery_task = self._recovery_task
+        if recovery_task is not None and recovery_task is not current:
+            recovery_task.cancel()
+            try:
+                await recovery_task
+            except asyncio.CancelledError:
+                pass
+            if self._recovery_task is recovery_task:
+                self._recovery_task = None
+
+        async with self._lifecycle_lock:
+            await self._stop_process()
+            if not self._client.is_closed:
+                await self._client.aclose()
+            self._startup_state = "not_started"
+
+    @asynccontextmanager
+    async def _operation(self):
+        async with self._operation_condition:
+            self._active_operations += 1
+        try:
+            yield
+        finally:
+            async with self._operation_condition:
+                self._active_operations -= 1
+                self._operation_condition.notify_all()
+
+    async def _wait_for_operations(self) -> None:
+        timeout = self._settings.validator_recovery_operation_drain_timeout_seconds
+        async with self._operation_condition:
+            if self._active_operations == 0:
+                return
+            try:
+                async with asyncio.timeout(timeout):
+                    await self._operation_condition.wait_for(lambda: self._active_operations == 0)
+            except TimeoutError:
+                logger.warning(
+                    "Timed out after %ss waiting for validator operations to finish; "
+                    "restarting the validator anyway",
+                    timeout,
+                )
+
+    def request_recovery(self, reason: str) -> None:
+        """Schedule one bounded restart after a transport-level engine failure."""
+        if self._stopping or not self._settings.auto_recover_validator:
+            return
+        if self._recovery_task is not None and not self._recovery_task.done():
+            return
+
+        self._startup_state = "preparation"
+        logger.warning("Scheduling validator engine recovery: %s", reason)
+        self._recovery_task = asyncio.create_task(self._run_recovery(reason))
+
+    async def _run_recovery(self, reason: str) -> None:
+        delay = self._settings.validator_recovery_backoff_seconds
+        attempts = max(1, self._settings.validator_recovery_max_attempts)
+        try:
+            for attempt in range(1, attempts + 1):
+                if attempt > 1:
+                    await asyncio.sleep(delay)
+                    delay *= self._settings.validator_recovery_backoff_multiplier
+                try:
+                    logger.info(
+                        "Recovering validator engine (attempt %d/%d; reason: %s)",
+                        attempt,
+                        attempts,
+                        reason,
+                    )
+                    await self._restart()
+                except asyncio.CancelledError:
+                    raise
+                except Exception:
+                    logger.exception(
+                        "Validator engine recovery attempt %d/%d failed",
+                        attempt,
+                        attempts,
+                    )
+                else:
+                    logger.info("Validator engine recovery succeeded")
+                    return
+
+            self._startup_state = "failed"
+            logger.error("Validator engine recovery exhausted after %d attempt(s)", attempts)
+        finally:
+            if self._recovery_task is asyncio.current_task():
+                self._recovery_task = None
+
+    async def _restart(self) -> None:
+        async with self._lifecycle_lock:
+            await self._wait_for_operations()
+            await self._stop_process()
+            if not self._client.is_closed:
+                await self._client.aclose()
+            self._client = self._new_client()
+            # Loaded IGs belong to the old Java process. Keeping them here
+            # would make the next startup skip /loadIG calls incorrectly.
+            self._loaded_igs.clear()
+            self._startup_state = "preparation"
+            try:
+                await self._start()
+            except BaseException:
+                await self._stop_process()
+                self._startup_state = "failed"
+                raise
+            self._startup_state = "ready"
 
     async def ensure_igs_loaded(self, igs: list[str]) -> None:
         """Load any IGs not already loaded into the running engine via
         POST /loadIG, so requests never need to restart the engine."""
-        missing = [ig for ig in igs if ig not in self._loaded_igs]
-        if not missing:
-            return
-        async with self._ig_lock:
-            for ig in missing:
-                if ig in self._loaded_igs:
-                    continue
-                response = await self._client.post("/loadIG", json={"ig": ig})
-                if response.status_code >= 400:
-                    raise ValidatorEngineError(
-                        f"Failed to load IG '{ig}': {response.status_code} {response.text}"
-                    )
-                self._loaded_igs.add(ig)
+        async with self._operation():
+            missing = [ig for ig in igs if ig not in self._loaded_igs]
+            if not missing:
+                return
+            async with self._ig_lock:
+                for ig in missing:
+                    if ig in self._loaded_igs:
+                        continue
+                    try:
+                        response = await self._client.post("/loadIG", json={"ig": ig})
+                    except RECOVERY_EXCEPTIONS as exc:
+                        self.request_recovery(str(exc))
+                        raise
+                    if response.status_code >= 400:
+                        raise ValidatorEngineError(
+                            f"Failed to load IG '{ig}': {response.status_code} {response.text}"
+                        )
+                    self._loaded_igs.add(ig)
 
     async def load_configured_packages(self) -> None:
         """Ensure every package listed in `PACKAGES` (see `GET /fhir/$packages`)
@@ -463,9 +618,14 @@ class ValidatorEngine:
     ) -> httpx.Response:
         params: list[tuple[str, str]] = [("profile", p) for p in profiles]
         headers = {"Content-Type": content_type, "Accept": accept}
-        return await self._client.post(
-            "/validateResource", params=params, content=content, headers=headers
-        )
+        async with self._operation():
+            try:
+                return await self._client.post(
+                    "/validateResource", params=params, content=content, headers=headers
+                )
+            except RECOVERY_EXCEPTIONS as exc:
+                self.request_recovery(str(exc))
+                raise
 
     async def convert_resource(
         self,
@@ -479,7 +639,12 @@ class ValidatorEngine:
         `content_type` -- so callers wanting a JSON<->XML flip must always
         pass an explicit `accept`."""
         headers = {"Content-Type": content_type, "Accept": accept}
-        return await self._client.post("/convert", content=content, headers=headers)
+        async with self._operation():
+            try:
+                return await self._client.post("/convert", content=content, headers=headers)
+            except RECOVERY_EXCEPTIONS as exc:
+                self.request_recovery(str(exc))
+                raise
 
     async def health(self) -> dict[str, Any]:
         return {

@@ -138,6 +138,16 @@ class Settings(BaseSettings):
     validator_startup_timeout_seconds: float = 300.0
     """Cold start (downloading/parsing IGs) can take minutes on first boot."""
     validator_request_timeout_seconds: float = 120.0
+    auto_recover_validator: bool = True
+    """Schedule an in-process validator restart after a transport failure."""
+    validator_recovery_max_attempts: int = 3
+    """Maximum consecutive restart attempts for one recovery event."""
+    validator_recovery_backoff_seconds: float = 5.0
+    """Delay before retrying a failed recovery attempt."""
+    validator_recovery_backoff_multiplier: float = 2.0
+    """Multiplier applied to the recovery retry delay after each failure."""
+    validator_recovery_operation_drain_timeout_seconds: float = 10.0
+    """Maximum time to wait for in-flight engine requests before restarting."""
 
     # --- HTTP API ---
     default_response_format: str = "application/fhir+json"
