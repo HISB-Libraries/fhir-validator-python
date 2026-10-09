@@ -16,6 +16,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
@@ -34,6 +35,10 @@ logger = logging.getLogger("fhir_validator.engine")
 
 READY_MARKER = "FHIR Validator HTTP Service started"
 STALE_TERMINOLOGY_CACHE_MARKER = b"never issued by this server"
+EXPIRED_TERMINOLOGY_CACHE_PATTERN = re.compile(
+    rb"the cache\s+['\"]?[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}['\"]?\s+expired:",
+    re.IGNORECASE,
+)
 
 # A validator-generated HTTP response is a valid result, not evidence that the
 # subprocess needs to be restarted. These are transport/protocol failures
@@ -321,14 +326,15 @@ class ValidatorEngine:
 
     @staticmethod
     def _is_stale_terminology_cache_response(response: httpx.Response) -> bool:
-        if response.status_code < 400:
-            return False
         body = response.content.lower()
         # This wording is specific to the terminology server's invalid
         # server-issued session/cache-id response. Do not require the rest of
         # the explanatory text: validator versions may truncate or reformat
-        # the response body.
-        return STALE_TERMINOLOGY_CACHE_MARKER in body
+        # the response body. The expired form includes a UUID so ordinary
+        # validation messages containing "expired" do not trigger recovery.
+        return STALE_TERMINOLOGY_CACHE_MARKER in body or bool(
+            EXPIRED_TERMINOLOGY_CACHE_PATTERN.search(response.content)
+        )
 
     def _request_recovery_for_response(self, response: httpx.Response, source: str) -> None:
         if self._is_stale_terminology_cache_response(response):

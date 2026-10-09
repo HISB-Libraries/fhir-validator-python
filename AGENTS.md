@@ -442,12 +442,15 @@ The public FastAPI port is set via the ASGI server invocation (`uvicorn
 app.main:app --port ...`), not an env var.
 
 The validator's terminology cache is deliberately separate from the shared
-FHIR package cache. If a validation response reports that a cache was never
-issued by `tx.fhir.org` (the cache-control/session error), the service marks
-the terminology cache stale and performs one bounded recovery restart with
-`-clear-tx-cache`. The failed request is not replayed. This handles stale
-server-issued cache IDs left by a crashed or different validator process;
-ordinary validator HTTP errors and request timeouts do not clear the cache.
+FHIR package cache. If a validation response reports that a terminology cache
+was never issued by `tx.fhir.org`, or that a UUID cache expired after being
+idle, the service marks the terminology cache stale and performs one bounded
+recovery restart with `-clear-tx-cache`. Detection is based on the specific
+diagnostic text, not the upstream HTTP status, because the validator can return
+the diagnostic inside an otherwise normal HTTP 200 `OperationOutcome`.
+The failed request is not replayed. This handles stale server-issued cache IDs
+left by a crashed, idle, or different validator process; ordinary validator
+HTTP errors and request timeouts do not clear the cache.
 
 ## Known limitations (intentional, not bugs)
 

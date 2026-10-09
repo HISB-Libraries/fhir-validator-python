@@ -253,8 +253,11 @@ ruff format .
 4. The service can run without the validator for development/testing
 5. Health endpoints can be used for monitoring and orchestration
 
-If validation reports that a terminology cache was never issued by
-`tx.fhir.org`, the service automatically schedules one recovery restart with
-`-clear-tx-cache`. This repairs stale server-issued cache IDs after a crash or
-when cache state was shared with another validator implementation. The failed
-request is not replayed; subsequent requests are gated while recovery runs.
+If validation reports that a terminology cache was never issued by `tx.fhir.org`
+or that a UUID cache expired after being idle, the service automatically
+schedules one recovery restart with `-clear-tx-cache`. Detection is based on
+the diagnostic text rather than HTTP status because the validator may return
+the message inside an HTTP 200 `OperationOutcome`. This repairs stale
+server-issued cache IDs after a crash, idle timeout, or shared cache state. The
+failed request is not replayed; subsequent requests are gated while recovery
+runs.

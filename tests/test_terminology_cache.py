@@ -249,7 +249,8 @@ class TestStaleCacheResponseRecovery:
 
         # Response with both stale cache markers
         response = httpx.Response(
-            500, content=b"<html>never issued by this servercache-control?mode=start</html>"
+            500,
+            content=b"<html>never issued by this servercache-control?mode=start</html>",
         )
 
         # Schedule recovery for this response
@@ -378,6 +379,116 @@ class TestStaleCacheResponseRecovery:
         response = httpx.Response(
             500,
             content=b'{"resourceType":"OperationOutcome","issue":[{"severity":"fatal","code":"exception"}]}',
+        )
+
+        # Schedule recovery for this response
+        engine._request_recovery_for_response(response, "/validateResource")
+
+        # Recovery should NOT be scheduled
+        assert engine._recovery_task is None
+        assert engine._clear_tx_cache_next_start is False
+
+    @pytest.mark.asyncio
+    async def test_http_200_with_expired_cache_diagnostic_schedules_recovery(
+        self, engine_with_recovery
+    ):
+        """A 200 response with an expired-cache UUID schedules recovery."""
+        engine = engine_with_recovery
+
+        # Response with expired cache diagnostic containing UUID
+        response = httpx.Response(
+            200,
+            content=(
+                b'{"resourceType":"OperationOutcome","issue":[{"severity":"warning",'
+                b'"code":"invalid","diagnostics":"The Coding provided was not found; '
+                b"error message = Error from https://tx.fhir.org/r4: Error: The cache "
+                b"'3d1b2c4e-5f6a-7b8c-9d0e-1f2a3b4c5d6e' expired: it went 34 minutes"
+                b"}]}"
+            ),
+        )
+
+        # Schedule recovery for this response
+        engine._request_recovery_for_response(response, "/validateResource")
+
+        # Recovery should be scheduled with clear_tx_cache flag
+        assert engine._recovery_task is not None
+        assert engine._clear_tx_cache_next_start is True
+
+        # Cancel the recovery to prevent it from running further
+        if engine._recovery_task and not engine._recovery_task.done():
+            engine._recovery_task.cancel()
+            try:
+                await engine._recovery_task
+            except asyncio.CancelledError:
+                pass
+
+    @pytest.mark.asyncio
+    async def test_http_500_with_expired_cache_diagnostic_schedules_recovery(
+        self, engine_with_recovery
+    ):
+        """A HTTP 500 response containing the expired-cache diagnostic also schedules recovery."""
+        engine = engine_with_recovery
+
+        # Response with expired cache diagnostic containing UUID in 500 response
+        response = httpx.Response(
+            500,
+            content=(
+                b'{"resourceType":"OperationOutcome","issue":[{"severity":"error",'
+                b'"code":"expired","diagnostics":"the cache 12345678-1234-1234-1234-'
+                b'123456789abc expired:"}]}'
+            ),
+        )
+
+        # Schedule recovery for this response
+        engine._request_recovery_for_response(response, "/validateResource")
+
+        # Recovery should be scheduled with clear_tx_cache flag
+        assert engine._recovery_task is not None
+        assert engine._clear_tx_cache_next_start is True
+
+        # Cancel the recovery to prevent it from running further
+        if engine._recovery_task and not engine._recovery_task.done():
+            engine._recovery_task.cancel()
+            try:
+                await engine._recovery_task
+            except asyncio.CancelledError:
+                pass
+
+    def test_http_200_without_cache_session_diagnostic_does_not_schedule_recovery(
+        self, engine_with_recovery
+    ):
+        """An ordinary 200 coding error does not schedule cache recovery."""
+        engine = engine_with_recovery
+
+        # Response with ordinary coding/value-set error but no cache-session diagnostic
+        response = httpx.Response(
+            200,
+            content=(
+                b'{"resourceType":"OperationOutcome","issue":[{"severity":"error",'
+                b'"code":"invalid","diagnostics":"Cannot find code system"}]}'
+            ),
+        )
+
+        # Schedule recovery for this response
+        engine._request_recovery_for_response(response, "/validateResource")
+
+        # Recovery should NOT be scheduled
+        assert engine._recovery_task is None
+        assert engine._clear_tx_cache_next_start is False
+
+    def test_generic_expired_text_without_uuid_does_not_schedule_recovery(
+        self, engine_with_recovery
+    ):
+        """Generic expired text without a cache UUID does not schedule recovery."""
+        engine = engine_with_recovery
+
+        # Response with generic expired text without UUID
+        response = httpx.Response(
+            200,
+            content=(
+                b'{"resourceType":"OperationOutcome","issue":[{"severity":"warning",'
+                b'"code":"expired","diagnostics":"subscription expired at midnight"}]}'
+            ),
         )
 
         # Schedule recovery for this response
