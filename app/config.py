@@ -10,6 +10,8 @@ that downloaded IGs and cached ValueSets survive restarts.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -33,6 +35,16 @@ class Settings(BaseSettings):
     split via `startup_igs_list` for a simpler operator experience."""
     terminology_server: str | None = None
     """Passed as `-tx <url>`. Leave unset to use the validator's default (tx.fhir.org)."""
+    terminology_cache_dir: str = ""
+    """Directory for terminology-server responses and session state.
+
+    Empty uses a service-specific directory under `~/.fhir` so another
+    validator implementation cannot reuse this service's tx.fhir.org cache
+    session by accident. Use `n/a` to disable terminology caching in the
+    validator, if supported by the selected CLI version.
+    """
+    clear_terminology_cache_on_startup: bool = False
+    """Pass `-clear-tx-cache` on startup to discard stale terminology state."""
     snomed_edition: str | None = "us"
     """Passed as `-sct <edition>`. Valid choices (per the validator's own `-sct` option):
     intl | us | uk | au | nl | ca | se | dk | es. Defaults to "us" so SNOMED CT valueset/
@@ -115,6 +127,13 @@ class Settings(BaseSettings):
     @property
     def startup_igs_list(self) -> list[str]:
         return [ig.strip() for ig in self.startup_igs.split(",") if ig.strip()]
+
+    @property
+    def terminology_cache_dir_path(self) -> str:
+        configured = self.terminology_cache_dir.strip()
+        if configured:
+            return str(Path(configured).expanduser())
+        return str(Path.home() / ".fhir" / "validator-service" / "terminology-cache")
 
     @property
     def validator_extra_args_list(self) -> list[str]:

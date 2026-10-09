@@ -175,6 +175,9 @@ Configuration is managed through environment variables and `.env` files.
 | `CI_BUILD_REPOS` | (empty) | Mapping of packages to CI build repositories |
 | `VALIDATOR_JAR_PATH` | `/opt/validator/validator_cli.jar` | Path to validator jar |
 | `AUTO_START_VALIDATOR` | `true` | Whether to start validator at boot |
+| `TERMINOLOGY_SERVER` | (validator default) | Terminology server URL, usually `https://tx.fhir.org` |
+| `TERMINOLOGY_CACHE_DIR` | `$HOME/.fhir/validator-service/terminology-cache` | Isolated terminology cache/session directory |
+| `CLEAR_TERMINOLOGY_CACHE_ON_STARTUP` | `false` | Clear stale terminology state on the next validator startup |
 | `LOAD_CACHED_PACKAGES_ON_STARTUP` | `true` | Load all cached packages at startup |
 
 ### Recovery Settings
@@ -249,3 +252,9 @@ ruff format .
 3. To pin a specific version, modify the Dockerfile to use a release tag
 4. The service can run without the validator for development/testing
 5. Health endpoints can be used for monitoring and orchestration
+
+If validation reports that a terminology cache was never issued by
+`tx.fhir.org`, the service automatically schedules one recovery restart with
+`-clear-tx-cache`. This repairs stale server-issued cache IDs after a crash or
+when cache state was shared with another validator implementation. The failed
+request is not replayed; subsequent requests are gated while recovery runs.

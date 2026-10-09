@@ -33,6 +33,7 @@ from app.package_cache import (
 logger = logging.getLogger("fhir_validator.engine")
 
 READY_MARKER = "FHIR Validator HTTP Service started"
+STALE_TERMINOLOGY_CACHE_MARKER = b"never issued by this server"
 
 # A validator-generated HTTP response is a valid result, not evidence that the
 # subprocess needs to be restarted. These are transport/protocol failures
@@ -65,6 +66,9 @@ class ValidatorEngine:
         self._active_operations = 0
         self._recovery_task: asyncio.Task[None] | None = None
         self._stopping = False
+        self._clear_tx_cache_next_start = getattr(
+            settings, "clear_terminology_cache_on_startup", False
+        )
         # The subprocess can be alive while configured packages and the
         # optional startup validation are still being prepared.
         self._startup_state = "not_started"
@@ -104,8 +108,17 @@ class ValidatorEngine:
             cmd += ["-ig", ig]
         if self._settings.terminology_server:
             cmd += ["-tx", self._settings.terminology_server]
+        terminology_cache_dir = getattr(self._settings, "terminology_cache_dir_path", "")
+        if terminology_cache_dir:
+            cmd += ["-txCache", terminology_cache_dir]
         if self._settings.snomed_edition:
             cmd += ["-sct", self._settings.snomed_edition]
+        if self._clear_tx_cache_next_start:
+            cmd.append("-clear-tx-cache")
+            # Consume the flag when the command is built. If the startup
+            # operation discovers another stale cache response while it is
+            # running, request_recovery() will set it again for the retry.
+            self._clear_tx_cache_next_start = False
         cmd += self._settings.validator_extra_args_list
         return cmd
 
@@ -306,10 +319,30 @@ class ValidatorEngine:
                     timeout,
                 )
 
-    def request_recovery(self, reason: str) -> None:
+    @staticmethod
+    def _is_stale_terminology_cache_response(response: httpx.Response) -> bool:
+        if response.status_code < 400:
+            return False
+        body = response.content.lower()
+        # This wording is specific to the terminology server's invalid
+        # server-issued session/cache-id response. Do not require the rest of
+        # the explanatory text: validator versions may truncate or reformat
+        # the response body.
+        return STALE_TERMINOLOGY_CACHE_MARKER in body
+
+    def _request_recovery_for_response(self, response: httpx.Response, source: str) -> None:
+        if self._is_stale_terminology_cache_response(response):
+            self.request_recovery(
+                f"stale terminology-server cache reported by {source}",
+                clear_tx_cache=True,
+            )
+
+    def request_recovery(self, reason: str, *, clear_tx_cache: bool = False) -> None:
         """Schedule one bounded restart after a transport-level engine failure."""
         if self._stopping or not self._settings.auto_recover_validator:
             return
+        if clear_tx_cache:
+            self._clear_tx_cache_next_start = True
         if self._recovery_task is not None and not self._recovery_task.done():
             return
 
@@ -441,6 +474,7 @@ class ValidatorEngine:
             logger.debug("loadIG failed for %s: %s", pkg, exc)
             return False
         if response.status_code >= 400:
+            self._request_recovery_for_response(response, f"/loadIG for {pkg}")
             logger.debug("loadIG failed for %s: %s %s", pkg, response.status_code, response.text)
             return False
         return True
@@ -620,12 +654,14 @@ class ValidatorEngine:
         headers = {"Content-Type": content_type, "Accept": accept}
         async with self._operation():
             try:
-                return await self._client.post(
+                response = await self._client.post(
                     "/validateResource", params=params, content=content, headers=headers
                 )
             except RECOVERY_EXCEPTIONS as exc:
                 self.request_recovery(str(exc))
                 raise
+            self._request_recovery_for_response(response, "/validateResource")
+            return response
 
     async def convert_resource(
         self,

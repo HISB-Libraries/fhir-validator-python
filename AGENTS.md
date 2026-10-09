@@ -31,7 +31,7 @@ FHIR Validator CLI (`validator_cli.jar`).
 +-------------------------------------------------------------------+
                                   |
      Caches IGs & deps    -> $HOME/.fhir/packages
-     Caches terminology   -> $HOME/.fhir (default tx.fhir.org cache)
+     Caches terminology   -> $HOME/.fhir/validator-service/terminology-cache
      Resolves terminology -> tx.fhir.org (unless -tx overridden)
 ```
 
@@ -417,6 +417,8 @@ real `$validate` request that omits the `profile` parameter.
 | `FHIR_VERSION` | `4.0` | passed as `-version` when the engine starts |
 | `STARTUP_IGS` | `` (empty) | **comma-separated**, e.g. `hl7.fhir.us.core#5.0.1,hl7.fhir.uv.ips` — NOT JSON, despite pydantic-settings' usual list-from-env convention (see comment in config.py for why) |
 | `TERMINOLOGY_SERVER` | unset (-> tx.fhir.org) | passed as `-tx <url>` |
+| `TERMINOLOGY_CACHE_DIR` | `$HOME/.fhir/validator-service/terminology-cache` | explicit directory passed as `-txCache`; use a separate directory per validator implementation/terminology endpoint, or `n/a` to disable terminology caching |
+| `CLEAR_TERMINOLOGY_CACHE_ON_STARTUP` | `false` | pass `-clear-tx-cache` on the next validator startup; useful for manually recovering from stale terminology-server session state |
 | `SNOMED_EDITION` | `us` | passed as `-sct <edition>`; valid choices per the validator's own `-sct` option: `intl \| us \| uk \| au \| nl \| ca \| se \| dk \| es`. Unset/empty falls back to the validator's own default (`intl`) |
 | `VALIDATOR_EXTRA_ARGS` | `` (empty) | comma-separated raw CLI args appended to `server ...` |
 | `VALIDATOR_STARTUP_TIMEOUT_SECONDS` | `300` | cold start with big IGs can take minutes |
@@ -438,6 +440,14 @@ real `$validate` request that omits the `profile` parameter.
 
 The public FastAPI port is set via the ASGI server invocation (`uvicorn
 app.main:app --port ...`), not an env var.
+
+The validator's terminology cache is deliberately separate from the shared
+FHIR package cache. If a validation response reports that a cache was never
+issued by `tx.fhir.org` (the cache-control/session error), the service marks
+the terminology cache stale and performs one bounded recovery restart with
+`-clear-tx-cache`. The failed request is not replayed. This handles stale
+server-issued cache IDs left by a crashed or different validator process;
+ordinary validator HTTP errors and request timeouts do not clear the cache.
 
 ## Known limitations (intentional, not bugs)
 
