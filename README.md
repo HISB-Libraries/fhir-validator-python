@@ -179,6 +179,7 @@ Configuration is managed through environment variables and `.env` files.
 | `TERMINOLOGY_CACHE_DIR` | `$HOME/.fhir/validator-service/terminology-cache` | Isolated terminology cache/session directory |
 | `CLEAR_TERMINOLOGY_CACHE_ON_STARTUP` | `false` | Clear stale terminology state on the next validator startup |
 | `LOAD_CACHED_PACKAGES_ON_STARTUP` | `true` | Load all cached packages at startup |
+| `LOG_LEVEL` | `DEBUG` | Application logging level; override with `INFO`, `WARNING`, or another Python logging level |
 
 ### Recovery Settings
 

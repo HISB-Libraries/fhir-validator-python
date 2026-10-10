@@ -177,7 +177,7 @@ class Settings(BaseSettings):
     origin). This also makes FastAPI/Starlette respond to CORS preflight
     `OPTIONS` requests on every route -- see `CORSMiddleware` in app/main.py."""
 
-    log_level: str = "INFO"
+    log_level: str = "DEBUG"
 
     custom_path: str = ""
     """Optional path prefix (e.g. "/fhir-validator") prepended to the API docs

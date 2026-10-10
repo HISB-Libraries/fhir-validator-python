@@ -45,3 +45,11 @@ def test_custom_path_normalized_strips_leading_and_trailing_slashes():
 
 def test_custom_path_normalized_blank_string_is_empty():
     assert Settings(custom_path="   ").custom_path_normalized == ""
+
+
+def test_log_level_defaults_to_debug():
+    assert Settings(_env_file=None).log_level == "DEBUG"
+
+
+def test_log_level_can_be_overridden():
+    assert Settings(log_level="INFO").log_level == "INFO"
